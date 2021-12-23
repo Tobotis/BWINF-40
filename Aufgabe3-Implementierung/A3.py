@@ -38,6 +38,14 @@ hexInSSD = {
 
 
 def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=False, schritte=[]):
+    # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
+    # => Check ob der Umsatz größer ist, als es freie Segmente gibt
+    if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
+        return []
+    # Check ob zu viele Segement im voraus verwendet wurden (die Segemnte können keines Falls in den "hinteren" Ziffern gewonnen werden)
+    # => Check ob der Umsatz kleiner ist (große negative Zahl), als es gefüllte Segmente gibt, wenn in jeder Ziffer noch mindestens zwei Segmente sein müssen (=1)
+    if übrigerUmsatz < (-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
+        return []
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
         # Check ob Segmente übrig sind => Die Lösung ist nich valid
@@ -48,8 +56,8 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
     # Festlegen der aktuellen Ziffer
     ziffer = hexZahl[index]
     # TODO REMOVE
-    print("Ziffer", ziffer, "Schritte", schritte, "Übrig",
-          übrigerUmsatz, "Umlegungen", übrigeUmlegungen)
+    # print("Ziffer", ziffer, "Schritte", schritte, "Übrig",
+    #     übrigerUmsatz, "Umlegungen", übrigeUmlegungen)
     # Iteration über alle anderen Hexziffern von F bis 0
     for i in hexInSSD.keys():
         # Check ob man bei der aktuellen Ziffen angekommen ist
@@ -95,7 +103,7 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
 def solve(hexZahl, maxUmlegungen):
     for index in range(len(hexZahl)):
         result = umwandeln(0, maxUmlegungen, index,
-                           hexZahl, nurErhöhung=True)
+                           hexZahl, nurErhöhung=True, schritte=[[i, i]for i in hexZahl[:index]])
         if len(result) > 0 or index == len(hexZahl)-1:
             if result == []:
                 print("No solution found")
@@ -105,6 +113,8 @@ def solve(hexZahl, maxUmlegungen):
                     ergebnis += ziffer[1]
                 print(ergebnis, "mit", maxUmlegungen-result[1], "Umlegungen")
                 return
+
+
 
 
 def parseInput():
