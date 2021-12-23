@@ -47,6 +47,9 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
         return [schritte, übrigeUmlegungen]
     # Festlegen der aktuellen Ziffer
     ziffer = hexZahl[index]
+    # TODO REMOVE
+    print("Ziffer", ziffer, "Schritte", schritte, "Übrig",
+          übrigerUmsatz, "Umlegungen", übrigeUmlegungen)
     # Iteration über alle anderen Hexziffern von F bis 0
     for i in hexInSSD.keys():
         # Check ob man bei der aktuellen Ziffen angekommen ist
@@ -79,7 +82,7 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
         else:
             # Wenn nicht aus der for-Loop gebreakt wurde, kann die Ziffer offensichtlich un Ziffer i umwandelt werden
             # Darauf basierend, werden die Schritte für die nächste Ziffer erzeugt
-            result = umwandeln(übrigerUmsatz+übrigeSegemente, übrigeUmlegungen -
+            result = umwandeln(übrigeSegemente, übrigeUmlegungen -
                                anzahlUmlegungen, index+1, hexZahl, False, schritte+[[ziffer, i]])
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
