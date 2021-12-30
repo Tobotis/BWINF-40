@@ -30,7 +30,6 @@ hexInSSD = {
 
 
 # umwandeln => rekursives Vorgehen zum maximieren einer Hexadezimalzahl im SSD
-# übrigerUmsatz => Segemnte, die nach dem umwandeln übrig sind
 # übrigeUmelgungen => Umlegungen, die maximal getätigt werden dürfen
 # index => Index der aktuellen Ziffer in der Hexadezimalzahl
 # hexZahl => Hexadezimalzahl, die umwandelt werden soll
@@ -92,7 +91,7 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
             # Darauf basierend, werden die Schritte erzeugt => mit SegmentenNeu und SegmentenWeg
             # kann später eine Schrittabfolge an Umlegungen erzeugt werden
             result = umwandeln(übrigeSegemente, übrigeUmlegungen -
-                               anzahlUmlegungen, index+1, hexZahl, False, schritte)
+                               anzahlUmlegungen, index+1, hexZahl, False, schritte+[[ziffer, i]])
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
             if len(result) > 0:
@@ -103,25 +102,19 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
 
 def solve(hexZahl, maxUmlegungen):
     for index in range(len(hexZahl)):
+
         result = umwandeln(0, maxUmlegungen, index,
-                           hexZahl, nurErhöhung=True, schritte=[])
+                           hexZahl, nurErhöhung=True, schritte=[[i, i]for i in hexZahl[:index]])
+
         if len(result) > 0 or index == len(hexZahl)-1:
+
             if result == []:
                 print("No solution found")
             else:
-                ssd = [hexInSSD[i] for i in hexZahl]
-                print("Lösung in ", maxUmlegungen-result[1], "Umlegungen:")
-                printSSD(ssd)
-                for schritt1 in result[0]:
-                    if schritt1[2] != 0:
-                        for schritt2 in result[0]:
-                            if schritt1[2] != schritt2[2] and schritt2[2] != 0:
-                                ssd[schritt1[0]][schritt1[1]] += schritt1[2]
-                                ssd[schritt2[0]][schritt2[1]] += schritt2[2]
-                                printSSD(ssd)
-                                schritt1[2] = 0
-                                schritt2[2] = 0
-                                break
+                maxedZiffer = ""
+                for i in result:
+                    maxedZiffer += str(i[1])
+                print(hexZahl, maxedZiffer)
 
             return
 
