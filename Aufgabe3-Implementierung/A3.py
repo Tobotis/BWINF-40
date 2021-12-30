@@ -28,31 +28,31 @@ hexInSSD = {
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
 
-# Die Umwandlung einer Hexadezimalzahl im Sieben-Segment-Display kann ausgeführt werden
-# übrigerUmsatz = Segemnte, die nach dem umwandeln übrig sind
-# übrigeUmelgungen = Umlegungen, die maximal getätigt werden dürfen
-# index = Index der aktuellen Ziffer in der Hexadezimalzahl
-# hexZahl = Hexadezimalzahl, die umwandelt werden soll
-# nurErhöhung = True, wenn die eingebene Ziffer nur erhöht werden darf
-# schritte = Liste der Schritte/Umlegungen, die getätigt wurden
 
-
+# umwandeln => rekursives Vorgehen zum maximieren einer Hexadezimalzahl im SSD
+# übrigerUmsatz => Segemnte, die nach dem umwandeln übrig sind
+# übrigeUmelgungen => Umlegungen, die maximal getätigt werden dürfen
+# index => Index der aktuellen Ziffer in der Hexadezimalzahl
+# hexZahl => Hexadezimalzahl, die umwandelt werden soll
+# nurErhöhung => True, wenn die eingebene Ziffer nur erhöht werden darf
+# schritte => Liste der Schritte/Umlegungen, die getätigt werden. Element := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu]
 def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=False, schritte=[]):
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es freie Segmente gibt
     if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
         return []
-    # Check ob zu viele Segement im voraus verwendet wurden (die Segemnte können keines Falls in den "hinteren" Ziffern gewonnen werden)
-    # => Check ob der Umsatz kleiner ist (große negative Zahl), als es gefüllte Segmente gibt, wenn in jeder Ziffer noch mindestens zwei Segmente sein müssen (=1)
+    # Check ob zu viele Segement im voraus verwendet wurden (die Segmente können keines Falls von den "hinteren" Ziffern genommen werden)
+    # => Check ob der Umsatz kleiner ist (negative Zahl), als es gefüllte Segmente gibt, wenn in jeder Ziffer am Ende noch mindestens zwei Segmente sein müssen (=1)
     if übrigerUmsatz < (-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
         return []
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
-        # Check ob Segmente übrig sind => Die Lösung ist nich valid
+        # Check ob Segmente übrig sind => Die Lösung ist nicht valid
+        # => Es müssen alle Segmente verwendet werden
         if übrigerUmsatz != 0:
             return []
         # Die Lösung ist valid und die Schritte können zurückgegeben werden
-        return [schritte, übrigeUmlegungen]
+        return schritte
     # Festlegen der aktuellen Ziffer
     ziffer = hexZahl[index]
     # TODO REMOVE
@@ -65,9 +65,9 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
         if i == ziffer and nurErhöhung:
             # Falls nur höhere Hexziffern überprüft werden sollten, wird die Schleife verlassen
             break
-        # Die übrigenSegmente entsprechen dem übrigen Umsatz
+        # Die eingegebenen übrigenSegmente entsprechen dem übrigen Umsatz
         übrigeSegemente = übrigerUmsatz
-        # Anzahl der Umlegungen nach i wird mit 0 initialisiert
+        # Anzahl der Umlegungen um i zu erreichen wird mit 0 initialisiert
         anzahlUmlegungen = 0
         # Iteration über alle Segmente der Ziffern
         for segment in range(7):
@@ -89,9 +89,10 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
                 break
         else:
             # Wenn nicht aus der for-Loop gebreakt wurde, kann die Ziffer offensichtlich un Ziffer i umwandelt werden
-            # Darauf basierend, werden die Schritte für die nächste Ziffer erzeugt
+            # Darauf basierend, werden die Schritte erzeugt => mit SegmentenNeu und SegmentenWeg
+            # kann später eine Schrittabfolge an Umlegungen erzeugt werden
             result = umwandeln(übrigeSegemente, übrigeUmlegungen -
-                               anzahlUmlegungen, index+1, hexZahl, False, schritte+[[ziffer, i]])
+                               anzahlUmlegungen, index+1, hexZahl, False, schritte)
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
             if len(result) > 0:
@@ -103,18 +104,62 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
 def solve(hexZahl, maxUmlegungen):
     for index in range(len(hexZahl)):
         result = umwandeln(0, maxUmlegungen, index,
-                           hexZahl, nurErhöhung=True, schritte=[[i, i]for i in hexZahl[:index]])
+                           hexZahl, nurErhöhung=True, schritte=[])
         if len(result) > 0 or index == len(hexZahl)-1:
             if result == []:
                 print("No solution found")
             else:
-                ergebnis = ""
-                for ziffer in result[0]:
-                    ergebnis += ziffer[1]
-                print(ergebnis, "mit", maxUmlegungen-result[1], "Umlegungen")
-                return
+                ssd = [hexInSSD[i] for i in hexZahl]
+                print("Lösung in ", maxUmlegungen-result[1], "Umlegungen:")
+                printSSD(ssd)
+                for schritt1 in result[0]:
+                    if schritt1[2] != 0:
+                        for schritt2 in result[0]:
+                            if schritt1[2] != schritt2[2] and schritt2[2] != 0:
+                                ssd[schritt1[0]][schritt1[1]] += schritt1[2]
+                                ssd[schritt2[0]][schritt2[1]] += schritt2[2]
+                                printSSD(ssd)
+                                schritt1[2] = 0
+                                schritt2[2] = 0
+                                break
+
+            return
 
 
+def printSSD(SSD):
+    # Iteration über alle Segmente der Ziffern des SSD
+    lines = ["" for _ in range(5)]
+    for ziffer in SSD:
+        if ziffer[0] == 1:
+            lines[0] += " - "
+        else:
+            lines[0] += "   "
+        if ziffer[5] == 1:
+            lines[1] += "| "
+        else:
+            lines[1] += "  "
+        if ziffer[1] == 1:
+            lines[1] += "|"
+        else:
+            lines[1] += " "
+        if ziffer[6] == 1:
+            lines[2] += " - "
+        else:
+            lines[2] += "   "
+        if ziffer[4] == 1:
+            lines[3] += "| "
+        else:
+            lines[3] += "  "
+        if ziffer[2] == 1:
+            lines[3] += "|"
+        else:
+            lines[3] += " "
+        if ziffer[3] == 1:
+            lines[4] += " - "
+        else:
+            lines[4] += "   "
+    for line in lines:
+        print(line)
 
 
 def parseInput():
@@ -139,7 +184,6 @@ def main():  # Startpunkt des Programmes
         return
     # Lösen des Problems
     for i in input:
-        print("SOLVING:", i)
         solve(i[0], int(i[1]))
 
 
