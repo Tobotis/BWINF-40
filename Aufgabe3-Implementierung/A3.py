@@ -5,9 +5,9 @@ from os.path import exists
 # Zeitmessung der Execution-Time
 import time
 
-# Dictinoary mit den Segmenten des Sieben-Segment-Displays
+# Dictinary mit den Segmenten des Sieben-Segment-Displays
 # Zum Konvertieren einer Hexadezimalzahl (Key) in eine Liste mit den Segmenten, die "leuchten" (Value)
-# 1: Segment ist an; 2: Segment ist aus
+# 1: Segment ist an; 0: Segment ist aus
 # Indizes starten beim obersten Segment (0) und folgen dem Urzeigersinn => Index 6 ist das mittlere Segement
 hexInSSD = {
     "F": [1, 0, 0, 0, 1, 1, 1],
@@ -27,16 +27,15 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
-
-
-# umwandeln => rekursives Vorgehen zum maximieren einer Hexadezimalzahl im SSD
+# umwandeln-Funktion => rekursives Vorgehen zum maximieren einer Hexadezimalzahl im SSD
 # übrigerUmsatz => Segemnte, die nach dem umwandeln übrig sind
 # übrigeUmelgungen => Umlegungen, die maximal getätigt werden dürfen
 # index => Index der aktuellen Ziffer in der Hexadezimalzahl
 # hexZahl => Hexadezimalzahl, die umwandelt werden soll
-# nurErhöhung => True, wenn die eingebene Ziffer nur erhöht werden darf
 # schritte => Liste der Schritte/Umlegungen, die getätigt werden. Element := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu]
-def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=False, schritte=[]):
+
+
+def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es freie Segmente gibt
     if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
@@ -56,43 +55,44 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
     # Festlegen der aktuellen Ziffer
     ziffer = hexZahl[index]
     # TODO REMOVE
-    # print("Ziffer", ziffer, "Schritte", schritte, "Übrig",
-    #     übrigerUmsatz, "Umlegungen", übrigeUmlegungen)
+    print("Ziffer", ziffer, "Schritte", schritte, "Übrig", übrigerUmsatz,)
     # Iteration über alle anderen Hexziffern von F bis 0
     for i in hexInSSD.keys():
-        # Check ob man bei der aktuellen Ziffen angekommen ist
+        # Check ob man bei der aktuellen Ziffer angekommen ist
         # Es folgen somit niedrigere Hexziffern
-        if i == ziffer and nurErhöhung:
-            # Falls nur höhere Hexziffern überprüft werden sollten, wird die Schleife verlassen
-            break
-        # Die eingegebenen übrigenSegmente entsprechen dem übrigen Umsatz
-        übrigeSegemente = übrigerUmsatz
-        # Anzahl der Umlegungen um i zu erreichen wird mit 0 initialisiert
-        anzahlUmlegungen = 0
+        if i == ziffer and len(schritte) == 0:
+            return umwandeln(maxUmlegungen, hexZahl,
+                             index+1, übrigerUmsatz, schritte)
+        übrigeSegmente = übrigerUmsatz
+        schritteNeu = schritte.copy()
         # Iteration über alle Segmente der Ziffern
         for segment in range(7):
             # Check ob das Segment von i in der Ausgangsziffer fehlt
             if hexInSSD[i][segment] > hexInSSD[ziffer][segment]:
-                # Es wird nur eine neue Umlegung durchgeführt, wenn es keine übrigen Segmente gibt
-                anzahlUmlegungen += 1 if übrigeSegemente <= 0 else 0
+                # Check ob Segmente übrigt sind
+                if übrigeSegmente > 0:
+                    schritteNeu[len(schritteNeu)-übrigeSegmente][2] = index
+                    schritteNeu[len(schritteNeu)-übrigeSegmente][3] = segment
+                else:
+                    schritteNeu.append([None, None, index, segment])
                 # Ein "übrigesSegment" wird verwendet (selbst wenn keine übrig sind =>
                 # möglicherweise kann es in der nächsten Ziffer erzeugt werden)
-                übrigeSegemente -= 1
+                übrigeSegmente -= 1
             # Check ob ein Segment von i in der Ausgangsziffer zu viel ist
             elif hexInSSD[i][segment] < hexInSSD[ziffer][segment]:
-                # Es wird nur eine neue Umlegung durchgeführt, wenn es woanders kein "Bedarf" gibt
-                anzahlUmlegungen += 0 if übrigeSegemente < 0 else 1
+                if übrigeSegmente < 0:
+                    schritteNeu[len(schritteNeu)+übrigeSegmente][0] = index
+                    schritteNeu[len(schritteNeu)+übrigeSegmente][1] = segment
+                else:
+                    schritteNeu.append([index, segment, None, None])
                 # Ein "übrigesSegment" wird hinzugefügt
-                übrigeSegemente += 1
+                übrigeSegmente += 1
             # Die Umformung ist nicht möglich, wenn die übrige Umlegungen nicht genug sind
-            if anzahlUmlegungen > übrigeUmlegungen:
+            if len(schritteNeu) > maxUmlegungen:
                 break
         else:
-            # Wenn nicht aus der for-Loop gebreakt wurde, kann die Ziffer offensichtlich un Ziffer i umwandelt werden
-            # Darauf basierend, werden die Schritte erzeugt => mit SegmentenNeu und SegmentenWeg
-            # kann später eine Schrittabfolge an Umlegungen erzeugt werden
-            result = umwandeln(übrigeSegemente, übrigeUmlegungen -
-                               anzahlUmlegungen, index+1, hexZahl, False, schritte)
+            result = umwandeln(maxUmlegungen, hexZahl,
+                               index+1, übrigeSegmente, schritte=schritteNeu)
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
             if len(result) > 0:
@@ -102,28 +102,17 @@ def umwandeln(übrigerUmsatz, übrigeUmlegungen, index, hexZahl, nurErhöhung=Fa
 
 
 def solve(hexZahl, maxUmlegungen):
-    for index in range(len(hexZahl)):
-        result = umwandeln(0, maxUmlegungen, index,
-                           hexZahl, nurErhöhung=True, schritte=[])
-        if len(result) > 0 or index == len(hexZahl)-1:
-            if result == []:
-                print("No solution found")
-            else:
-                ssd = [hexInSSD[i] for i in hexZahl]
-                print("Lösung in ", maxUmlegungen-result[1], "Umlegungen:")
-                printSSD(ssd)
-                for schritt1 in result[0]:
-                    if schritt1[2] != 0:
-                        for schritt2 in result[0]:
-                            if schritt1[2] != schritt2[2] and schritt2[2] != 0:
-                                ssd[schritt1[0]][schritt1[1]] += schritt1[2]
-                                ssd[schritt2[0]][schritt2[1]] += schritt2[2]
-                                printSSD(ssd)
-                                schritt1[2] = 0
-                                schritt2[2] = 0
-                                break
-
-            return
+    ergebnis = umwandeln(maxUmlegungen, hexZahl)
+    if len(ergebnis) > 0:
+        # Es wurde eine Lösung gefunden
+        ssd = [hexInSSD[i].copy() for i in hexZahl]
+        printSSD(ssd)
+        for schritt in ergebnis:
+            ssd[schritt[0]][schritt[1]] = 0
+            ssd[schritt[2]][schritt[3]] = 1
+            printSSD(ssd)
+    else:
+        print("KEINE LÖSUNG GEFUNDEN")
 
 
 def printSSD(SSD):
