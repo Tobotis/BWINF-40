@@ -55,7 +55,7 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Festlegen der aktuellen Ziffer
     ziffer = hexZahl[index]
     # TODO REMOVE
-    print("Ziffer", ziffer, "Schritte", schritte, "Übrig", übrigerUmsatz,)
+    #print("Ziffer", ziffer, "Schritte", schritte, "Übrig", übrigerUmsatz,)
     # Iteration über alle anderen Hexziffern von F bis 0
     for i in hexInSSD.keys():
         # Check ob man bei der aktuellen Ziffer angekommen ist
@@ -115,7 +115,7 @@ def solve(hexZahl, maxUmlegungen):
         print("KEINE LÖSUNG GEFUNDEN")
 
 
-def printSSD(SSD):
+def printSSD(SSD,):
     # Iteration über alle Segmente der Ziffern des SSD
     lines = ["" for _ in range(5)]
     for ziffer in SSD:
