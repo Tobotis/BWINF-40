@@ -91,6 +91,7 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
         else:
             result = umwandeln(maxUmlegungen, hexZahl,
                                index+1, übrigeSegmente, schritte=schritteNeu)
+
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
             if len(result) > 0:
