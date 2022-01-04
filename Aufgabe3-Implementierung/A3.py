@@ -135,6 +135,11 @@ def solve(hexZahl, maxUmlegungen):
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
             printSSD(ssd)
+        ergebnis = ""
+        for anzeige in ssd:
+            ergebnis += list(hexInSSD.keys()
+                             )[list(hexInSSD.values()).index(anzeige)]
+        print("Lösung:", ergebnis)
     else:
         print("KEINE LÖSUNG GEFUNDEN")
 
