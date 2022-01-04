@@ -33,6 +33,8 @@ hexInSSD = {
 # index => Index der aktuellen Ziffer in der Hexadezimalzahl
 # hexZahl => Hexadezimalzahl, die umwandelt werden soll
 # schritte => Liste der Schritte/Umlegungen, die getätigt werden. Element := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu]
+
+
 def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es freie Segmente gibt
@@ -110,6 +112,11 @@ def solve(hexZahl, maxUmlegungen):
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
             printSSD(ssd)
+        ergebnis = ""
+        for anzeige in ssd:
+            ergebnis += list(hexInSSD.keys()
+                             )[list(hexInSSD.values()).index(anzeige)]
+        print("Lösung:", ergebnis)
     else:
         print("KEINE LÖSUNG GEFUNDEN")
 
