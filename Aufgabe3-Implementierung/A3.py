@@ -33,6 +33,8 @@ hexInSSD = {
 # index => Index der aktuellen Ziffer in der Hexadezimalzahl (Standardmäßig 0)
 # übrigerUmsatz => Segemnte, die nach dem umwandeln übrig sind (Standardmäßig 0)
 # schritte => Liste der Schritte/Umlegungen, die getätigt werden. Element := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
+
+
 def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es freie Segmente gibt
@@ -124,24 +126,41 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Es wurde keine Lösung gefunden
     return []
 
+# solve-Funktion => initialisierung des Lösungsprozesses und Ausgabe der Lösung
+
 
 def solve(hexZahl, maxUmlegungen):
+    # Ermitteln der Lösung mithilfe von "umwandeln"
     ergebnis = umwandeln(maxUmlegungen, hexZahl)
+    # Check ob Umlegungen getätigt wurden
     if len(ergebnis) > 0:
         # Es wurde eine Lösung gefunden
+        # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
         ssd = [hexInSSD[i].copy() for i in hexZahl]
+        # Ausagbe der Starthexzahl in der SSA
         printSSD(ssd)
+        # Iteraion über die ermittleten Umlegungen
         for schritt in ergebnis:
+            # Durchführen der Umlegung
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
+            # Ausgabe der SSA
             printSSD(ssd)
-        ergebnis = ""
+        # Ermitteln der Lösungszahl
+        # (Umformen von der SSA-Darstellung in einen String)
+        ergebnisString = ""
+        # Iteration über alle Ziffern in der SSA
         for anzeige in ssd:
-            ergebnis += list(hexInSSD.keys()
-                             )[list(hexInSSD.values()).index(anzeige)]
-        print("Lösung:", ergebnis)
+            # Hinzufügen der Ziffer im Stringformat (Umformung über die Dictionary s.o.)
+            ergebnisString += list(hexInSSD.keys()
+                                   )[list(hexInSSD.values()).index(anzeige)]
+        # Ausgabe der Lösungszahl
+        print("Lösung:", ergebnisString)
     else:
-        print("KEINE LÖSUNG GEFUNDEN")
+        # Es wurden keine Umformungen getätigt
+        # Es ist bereits die maximale Hexadezimalzahl
+        print("KEINE UMLEGUNGEN NÖTIG")
+        print("Lösung:", hexZahl)
 
 
 def printSSD(SSD,):
@@ -192,8 +211,9 @@ def parseInput():
         inhalt = data.readlines()  # Lesen der Zeilen
         inhalt = [i.replace("\n", "")
                   for i in inhalt[1:]]  # Zeilenumbrüche entfernen
+        # Aufteilen der Hexzahl und der maximalen Umlegungen
         data = [i.split(" ") for i in inhalt]
-        return data
+        return data  # Zurückgeben der gelesenen Daten
 
 
 def main():  # Startpunkt des Programmes
@@ -202,6 +222,8 @@ def main():  # Startpunkt des Programmes
         return
     # Lösen des Problems
     for i in input:
+        # [Hexzahl] : string
+        # [maximaleUmlegungen] : int
         solve(i[0], int(i[1]))
 
 
