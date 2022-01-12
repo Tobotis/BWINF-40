@@ -1,9 +1,12 @@
 # Zur Übergabe von Argumenten in der Kommandozeile
-from sys import argv
-# Zum Überprüfen ob Files exisitieren
-from os.path import exists
-# Zeitmessung der Execution-Time
 import time
+from os.path import exists
+from sys import argv
+# Für sehr große Eingaben, muss das Rekursionslimit hochgestellt werden
+from sys import setrecursionlimit
+setrecursionlimit(1500)
+# Zum Überprüfen ob Files exisitieren
+# Zeitmessung der Execution-Time
 
 # Dictinary mit den Segmenten des Sieben-Segment-Displays (SSD)
 # Zum Konvertieren einer Hexadezimalzahl (Key) in eine Liste mit den Segmenten, die "leuchten" (Value)
@@ -132,35 +135,40 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
 def solve(hexZahl, maxUmlegungen):
     # Ermitteln der Lösung mithilfe von "umwandeln"
     ergebnis = umwandeln(maxUmlegungen, hexZahl)
+    # Ergebnis
+    ergebnisString = ""
     # Check ob Umlegungen getätigt wurden
     if len(ergebnis) > 0:
         # Es wurde eine Lösung gefunden
         # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
         ssd = [hexInSSD[i].copy() for i in hexZahl]
-        # Ausagbe der Starthexzahl in der SSA
-        printSSD(ssd)
+        # Ausagbe der Starthexzahl in der SSA (nur wenn weniger als 40 schritte ausgegeben werden müssen)
+        if len(ergebnis) <= 40:
+            printSSD(ssd)
         # Iteraion über die ermittleten Umlegungen
         for schritt in ergebnis:
             # Durchführen der Umlegung
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
-            # Ausgabe der SSA
-            printSSD(ssd)
+            # Ausgabe der SSA (nur wenn weniger als 40 schritte ausgegeben werden müssen)
+            if len(ergebnis) <= 40:
+                printSSD(ssd)
         # Ermitteln der Lösungszahl
         # (Umformen von der SSA-Darstellung in einen String)
-        ergebnisString = ""
+
         # Iteration über alle Ziffern in der SSA
         for anzeige in ssd:
             # Hinzufügen der Ziffer im Stringformat (Umformung über die Dictionary s.o.)
             ergebnisString += list(hexInSSD.keys()
                                    )[list(hexInSSD.values()).index(anzeige)]
-        # Ausgabe der Lösungszahl
-        print("Lösung:", ergebnisString)
+
     else:
         # Es wurden keine Umformungen getätigt
         # Es ist bereits die maximale Hexadezimalzahl
-        print("KEINE UMLEGUNGEN NÖTIG")
-        print("Lösung:", hexZahl)
+        ergebnisString = hexZahl
+
+    # Zurückgeben der Lösung und der benötigten umlegungen
+    return ergebnisString, len(ergebnis)
 
 
 def printSSD(SSD,):
@@ -210,10 +218,12 @@ def parseInput():
     with open(file=file, mode="r") as data:  # Öffnen der angegebenen Datei
         inhalt = data.readlines()  # Lesen der Zeilen
         inhalt = [i.replace("\n", "")
-                  for i in inhalt[1:]]  # Zeilenumbrüche entfernen
-        # Aufteilen der Hexzahl und der maximalen Umlegungen
-        data = [i.split(" ") for i in inhalt]
-        return data  # Zurückgeben der gelesenen Daten
+                  for i in inhalt]  # Zeilenumbrüche entfernen
+        hexZahl = inhalt[0]  # Die Hexzahl befindet sich in der ersten Zeile
+        # Die Maximalzahl an Umlegungen m befindet sich in der zweiten Zeile
+        m = int(inhalt[1])
+        # Zurückgeben der gelesenen Daten (...und File, für Benennung der Ergebnisdatei)
+        return hexZahl, m, file
 
 
 def main():  # Startpunkt des Programmes
@@ -221,10 +231,12 @@ def main():  # Startpunkt des Programmes
     if(input is None):
         return
     # Lösen des Problems
-    for i in input:
-        # [Hexzahl] : string
-        # [maximaleUmlegungen] : int
-        solve(i[0], int(i[1]))
+    ergebnis, umlegungen = solve(input[0], input[1])
+    # Ausgabe der Lösungszahl
+    print("Lösung:", ergebnis, "\nmit " + str(umlegungen) + " Umlegungen")
+    # Schreiben der Lösungsdatei
+    with open("ergebnis_" + input[2], "w") as f:
+        f.write(ergebnis)
 
 
 if __name__ == "__main__":  # Das ist Python :)
