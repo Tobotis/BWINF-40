@@ -132,7 +132,7 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
 # solve-Funktion => initialisierung des Lösungsprozesses und Ausgabe der Lösung
 
 
-def solve(hexZahl, maxUmlegungen):
+def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
     # Ermitteln der Lösung mithilfe von "umwandeln"
     ergebnis = umwandeln(maxUmlegungen, hexZahl)
     # Ergebnis
@@ -143,7 +143,7 @@ def solve(hexZahl, maxUmlegungen):
         # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
         ssd = [hexInSSD[i].copy() for i in hexZahl]
         # Ausagbe der Starthexzahl in der SSA (nur wenn weniger als 40 schritte ausgegeben werden müssen)
-        if len(ergebnis) <= 40:
+        if zwischenstandAnzeige:
             printSSD(ssd)
         # Iteraion über die ermittleten Umlegungen
         for schritt in ergebnis:
@@ -151,7 +151,7 @@ def solve(hexZahl, maxUmlegungen):
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
             # Ausgabe der SSA (nur wenn weniger als 40 schritte ausgegeben werden müssen)
-            if len(ergebnis) <= 40:
+            if zwischenstandAnzeige:
                 printSSD(ssd)
         # Ermitteln der Lösungszahl
         # (Umformen von der SSA-Darstellung in einen String)
@@ -230,10 +230,15 @@ def main():  # Startpunkt des Programmes
     input = parseInput()  # Lesen des Inputs
     if(input is None):
         return
+    # Lesen der Flagge -z für Zwischenstand anzeigen
+    zwischenstandAnzeige = False
+    if len(argv) >= 3:
+        zwischenstandAnzeige = argv[2] == "-z"
     # Lösen des Problems
-    ergebnis, umlegungen = solve(input[0], input[1])
+    ergebnis, umlegungen = solve(input[0], input[1], zwischenstandAnzeige)
     # Ausgabe der Lösungszahl
-    print("Lösung:", ergebnis, "\nmit " + str(umlegungen) + " Umlegungen")
+    print("Lösung:", ergebnis)
+    print(umlegungen, "Umlegungen benötigt")
     # Schreiben der Lösungsdatei
     with open("ergebnis_" + input[2], "w") as f:
         f.write(ergebnis)
