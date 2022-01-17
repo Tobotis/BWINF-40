@@ -1,14 +1,15 @@
-# Zur Übergabe von Argumenten in der Kommandozeile
+# Zeitmessung der Execution-Time
 import time
+# Zum Überprüfen ob Files exisitieren
 from os.path import exists
+# Zur Übergabe von Argumenten in der Kommandozeile
 from sys import argv
 # Für sehr große Eingaben, muss das Rekursionslimit hochgestellt werden
 from sys import setrecursionlimit
 setrecursionlimit(1500)
-# Zum Überprüfen ob Files exisitieren
-# Zeitmessung der Execution-Time
 
-# Dictinary mit den Segmenten des Sieben-Segment-Displays (SSD)
+
+# Dictinary mit den Segmenten des Sieben-Segment-Displays (SSD) (F=>0)
 # Zum Konvertieren einer Hexadezimalzahl (Key) in eine Liste mit den Segmenten, die "leuchten" (Value)
 # 1: Segment ist an; 0: Segment ist aus
 # Indizes starten beim obersten Segment (0) und folgen dem Urzeigersinn => Index 6 ist das mittlere Segement
@@ -30,24 +31,24 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
+
 # umwandeln-Funktion => rekursives Vorgehen zum Maximieren einer Hexadezimalzahl im SSD
 # maxUmlegungen => Umlegungen, die maximal getätigt werden dürfen
 # hexZahl => Hexadezimalzahl, die umwandelt werden soll
 # index => Index der aktuellen Ziffer in der Hexadezimalzahl (Standardmäßig 0)
-# übrigerUmsatz => Segemnte, die nach dem umwandeln übrig sind (Standardmäßig 0)
-# schritte => Liste der Schritte/Umlegungen, die getätigt werden. Element := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
-
-
+# übrigerUmsatz => Segemente, die nach dem umwandeln übrig sind (Standardmäßig 0)
+# schritte => Liste der Schritte/Umlegungen, die getätigt werden.
+#     Schritt := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
 def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es freie Segmente gibt
     if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
-        # Dieser Weg ist nicht möglich => Abbruch
+        # Die Anzahl der ''Lücken'' in der hinteren Ziffern ist größer als die Anzahl der übrigen Segmente
         return []
     # Check ob zu viele Segement im Voraus verwendet wurden (die Segmente können keines Falls von den "hinteren" Ziffern genommen werden)
     # => Check ob der Umsatz kleiner ist (negative Zahl), als es gefüllte Segmente gibt, wenn in jeder Ziffer am Ende noch mindestens zwei Segmente sein müssen (=1)
     if übrigerUmsatz < (-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
-        # Dieser Weg ist nicht möglich => Abbruch
+        # Die Anzahl der ''Lücken'' in den bereits umegelegten Ziffern ist größer als die Anzahl der übrigen Segmente in den hinteren Ziffern
         return []
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
@@ -59,9 +60,6 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
         return schritte
     # Festlegen der aktuellen Ziffer der Hexzahl
     ziffer = hexZahl[index]
-    # TODO REMOVE
-    # print("Ziffer", ziffer, "Schritte", schritte, "Übrig", übrigerUmsatz,)
-
     # Iteration über alle anderen Hexziffern von F bis 0
     for i in hexInSSD.keys():
         # Check ob man bei der aktuellen Ziffer angekommen ist
@@ -130,8 +128,9 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     return []
 
 # solve-Funktion => initialisierung des Lösungsprozesses und Ausgabe der Lösung
-
-
+# hexZahl := String der Hexadezimalzahl
+# maxUmlegungen := maximale Anzahl an Umlegungen
+# zwischenstandAnzeige := True, wenn die Zwischenstände angezeigt werden sollen
 def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
     # Ermitteln der Lösung mithilfe von "umwandeln"
     ergebnis = umwandeln(maxUmlegungen, hexZahl)
@@ -170,7 +169,8 @@ def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
     # Zurückgeben der Lösung und der benötigten umlegungen
     return ergebnisString, len(ergebnis)
 
-
+# Funktion zur Ausgabe eines SSDs in der Konsole
+# SSD := Liste der Darstellungen von Ziffern (Liste von Listen mit 7 Elementen)
 def printSSD(SSD,):
     # Iteration über alle Segmente der Ziffern des SSD
     lines = ["" for _ in range(5)]
@@ -206,7 +206,7 @@ def printSSD(SSD,):
     for line in lines:
         print(line)
 
-
+# Funktion zum Lesen des Inputs
 def parseInput():
     if(len(argv) == 1):  # Es wurde kein extra Argument angegeben
         file = input("Eingabedatei eingeben:")
@@ -245,7 +245,7 @@ def main():  # Startpunkt des Programmes
 
 
 if __name__ == "__main__":  # Das ist Python :)
-    start_time = time.time()  # Messung der Start-Zeit
+    start_time = time.time()  # Startzeit des Programmes
     main()
     print("--- %s Sekunden ---" %
           round(time.time() - start_time, 4))  # Ausgeben der Execution-Time

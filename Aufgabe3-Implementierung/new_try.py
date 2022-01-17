@@ -31,6 +31,35 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
+
+
+def brute_all_possiblities():
+    possibilites = set()
+    umsätze = set()
+    u = set()
+    for ziffer in hexInSSD.keys():
+        for zielZiffer in hexInSSD.keys():
+            übrigeSegmente = 0
+            umlegungen = 0
+            for segment in range(7):
+                # Segment muss weggenommen werden
+                if hexInSSD[ziffer][segment] > hexInSSD[zielZiffer][segment]:
+                    if übrigeSegmente >= 0:
+                        umlegungen += 1
+                    übrigeSegmente += 1
+                # Segment muss eingesetzt werden
+                elif hexInSSD[ziffer][segment] < hexInSSD[zielZiffer][segment]:
+                    if übrigeSegmente <= 0:
+                        umlegungen += 1
+                    übrigeSegmente -= 1
+            possibilites.add((umlegungen, übrigeSegmente))
+            umsätze.add(übrigeSegmente)
+            u.add(umlegungen)
+
+    print(possibilites, len(possibilites))
+    print(umsätze, len(umsätze))
+    print(u, len(u))
+
 # solve-Funktion => initialisierung des Lösungsprozesses und Ausgabe der Lösung
 
 
@@ -135,6 +164,7 @@ def main():  # Startpunkt des Programmes
 
 if __name__ == "__main__":  # Das ist Python :)
     start_time = time.time()  # Messung der Start-Zeit
-    main()
+    # main()
+    brute_all_possiblities()
     print("--- %s Sekunden ---" %
           round(time.time() - start_time, 4))  # Ausgeben der Execution-Time
