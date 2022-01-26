@@ -3,6 +3,7 @@ from logging import info
 import time
 from os.path import exists
 from sys import argv
+import matplotlib.pyplot as plt
 # Für sehr große Eingaben, muss das Rekursionslimit hochgestellt werden
 from sys import setrecursionlimit
 setrecursionlimit(1500)
@@ -34,6 +35,7 @@ hexInSSD = {
 
 
 def brute_all_possiblities():
+    anzahlZiffern = 3
     possibilites = set()
     umsätze = set()
     u = set()
@@ -52,7 +54,11 @@ def brute_all_possiblities():
                     if übrigeSegmente <= 0:
                         umlegungen += 1
                     übrigeSegmente -= 1
-            possibilites.add((umlegungen, übrigeSegmente))
+            for i in range(anzahlZiffern):
+                zielWert = list(hexInSSD.keys()).index(zielZiffer)
+                zifferWert = list(hexInSSD.keys()).index(ziffer)
+                wertsteigerung = (zielWert-zifferWert) * (16**i)
+                possibilites.add((umlegungen, übrigeSegmente, wertsteigerung))
             umsätze.add(übrigeSegmente)
             u.add(umlegungen)
 
@@ -60,6 +66,16 @@ def brute_all_possiblities():
     print(umsätze, len(umsätze))
     print(u, len(u))
 
+    x = list(zip(*possibilites))[0]
+    y = list(zip(*possibilites))[2]
+    z = list(zip(*possibilites))[1]
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(x, y, z)
+    ax.set_xlabel('Anzahl Umlegungen')
+    ax.set_ylabel('Wertsteigerung')
+    ax.set_zlabel('Segmentumsatz')
+    plt.show()
 # solve-Funktion => initialisierung des Lösungsprozesses und Ausgabe der Lösung
 
 
