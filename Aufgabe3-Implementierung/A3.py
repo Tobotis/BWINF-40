@@ -41,7 +41,7 @@ hexInSSD = {
 #     Schritt := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
 def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
-    # => Check ob der Umsatz größer ist, als es freie Segmente gibt
+    # => Check ob der Umsatz größer ist, als es leere Segmente gibt
     if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
         # Die Anzahl der ''Lücken'' in der hinteren Ziffern ist größer als die Anzahl der übrigen Segmente
         return []
@@ -73,7 +73,7 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
                              index+1, übrigerUmsatz, schritte)
         # Die aktuell übrigen Segmente entsprechen dem Segmentumsatz
         übrigeSegmente = übrigerUmsatz
-        # Kopie der schritte um Mutation zu vermeiden
+        # Kopie der Schritte um Mutation zu vermeiden
         schritteNeu = schritte.copy()
         # Iteration über alle Segmente der Ziffern
         for segment in range(7):
@@ -244,8 +244,7 @@ def main():  # Startpunkt des Programmes
         f.write(ergebnis)
 
 
-if __name__ == "__main__":  # Das ist Python :)
+if __name__ == "__main__": 
     start_time = time.time()  # Startzeit des Programmes
     main()
-    print("--- %s Sekunden ---" %
-          round(time.time() - start_time, 4))  # Ausgeben der Execution-Time
+    print("--- %s Sekunden ---" % round(time.time() - start_time, 4))  # Ausgeben der Execution-Time
