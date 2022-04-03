@@ -40,6 +40,14 @@ hexInSSD = {
 # schritte => Liste der Schritte/Umlegungen, die getätigt werden.
 #     Schritt := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
 def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
+    # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
+    if index >= len(hexZahl):
+        # Check ob Segmente übrig sind => Die Lösung ist nicht valide
+        # => Es müssen alle Segmente verwendet werden
+        if übrigerUmsatz != 0:
+            return []
+        # Die Lösung ist valide und die Schritte können zurückgegeben werden
+        return schritte
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es leere Segmente gibt
     if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
@@ -50,14 +58,6 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
     if übrigerUmsatz < (-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
         # Die Anzahl der ''Lücken'' in den bereits umegelegten Ziffern ist größer als die Anzahl der übrigen Segmente in den hinteren Ziffern
         return []
-    # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
-    if index >= len(hexZahl):
-        # Check ob Segmente übrig sind => Die Lösung ist nicht valide
-        # => Es müssen alle Segmente verwendet werden
-        if übrigerUmsatz != 0:
-            return []
-        # Die Lösung ist valide und die Schritte können zurückgegeben werden
-        return schritte
     # Festlegen der aktuellen Ziffer der Hexzahl
     ziffer = hexZahl[index]
     # Iteration über alle anderen Hexziffern von F bis 0
