@@ -171,6 +171,8 @@ def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
 
 # Funktion zur Ausgabe eines SSDs in der Konsole
 # SSD := Liste der Darstellungen von Ziffern (Liste von Listen mit 7 Elementen)
+
+
 def printSSD(SSD,):
     # Iteration über alle Segmente der Ziffern des SSD
     lines = ["" for _ in range(5)]
@@ -207,6 +209,8 @@ def printSSD(SSD,):
         print(line)
 
 # Funktion zum Lesen des Inputs
+
+
 def parseInput():
     if(len(argv) == 1):  # Es wurde kein extra Argument angegeben
         file = input("Eingabedatei eingeben:")
@@ -244,7 +248,8 @@ def main():  # Startpunkt des Programmes
         f.write(ergebnis)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     start_time = time.time()  # Startzeit des Programmes
     main()
-    print("--- %s Sekunden ---" % round(time.time() - start_time, 4))  # Ausgeben der Execution-Time
+    # Ausgeben der Execution-Time
+    print("--- %s Sekunden ---" % round(time.time() - start_time, 4))
