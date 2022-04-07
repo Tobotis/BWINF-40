@@ -12,6 +12,7 @@ setrecursionlimit(1500)
 # Zum Überprüfen ob Files exisitieren
 # Zeitmessung der Execution-Time
 
+
 def brute_all_possiblities():
     anzahlZiffern = 3
     possibilites = set()
@@ -49,20 +50,22 @@ def brute_all_possiblities():
     plt.scatter(x, y)
     plt.show()
 
+
 def testTime():
     m = 100
     times = []
-    for i in range(1, 10):
+    for i in range(1, 1000):
         hx = ""
-        s = time.time() 
+        s = time.time()
         for _ in range(i):
             hx += list(hexInSSD.keys())[r.randint(0, len(hexInSSD.keys())-1)]
-        solve(hx, m)
+        result = solve(hx, m)
+        print(hx, result[0], i)
         e = time.time()
-        times.append([i,e-s])
+        times.append([i, e-s])
     plt.plot(list(zip(*times))[0], list(zip(*times))[1])
     plt.show()
 
-if __name__ == "__main__":  
-    testTime()
 
+if __name__ == "__main__":
+    testTime()
