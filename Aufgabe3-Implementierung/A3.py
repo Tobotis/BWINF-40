@@ -67,7 +67,7 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
         # => nur fortfahren, wenn bereits Umlegungen getätigt worden sind
         # Die erste Ziffer, die umgelegt wird, darf nicht verringert werden,
         # sonst wird die gesamte Hexadezimalziffer verringert (siehe Stellenwertsystem)
-        if i == ziffer and len(schritte) == 0:
+        if i == ziffer and (len(schritte) == 0 or übrigerUmsatz == 0):
             # Die aktuelle Ziffer bleibt unverändert ... es wird mit der nächsten fortgefahren
             return umwandeln(maxUmlegungen, hexZahl,
                              index+1, übrigerUmsatz, schritte)
