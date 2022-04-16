@@ -1,18 +1,19 @@
-# Zeitmessung der Execution-Time
-import time
-# Zum Überprüfen ob Files exisitieren
+# Für Messung der Laufzeit
+from time import time
+# Zum Überprüfen ob Dateien exisitieren
 from os.path import exists
-# Zur Übergabe von Argumenten in der Kommandozeile
+# Zur Übergabe von Argumenten im Terminal
 from sys import argv
-# Für sehr große Eingaben, muss das Rekursionslimit hochgestellt werden
+# Für sehr große Eingaben, muss das Rekursionslimit hochgestellt werden (Maximale Rekursionstiefe)
+# => Entspricht im Sachzusammenahang der Anzahl an Ziffern in der Eingabedatei
 from sys import setrecursionlimit
-setrecursionlimit(1500)
+setrecursionlimit(1200)
 
 
-# Dictinary mit den Segmenten des Sieben-Segment-Displays (SSD) (F=>0)
-# Zum Konvertieren einer Hexadezimalzahl (Key) in eine Liste mit den Segmenten, die "leuchten" (Value)
-# 1: Segment ist an; 0: Segment ist aus
-# Indizes starten beim obersten Segment (0) und folgen dem Urzeigersinn => Index 6 ist das mittlere Segement
+# Dictionary den Segmenten des Sieben-Segment-Displays (SSD) (von F bis 0)
+# Zum Konvertieren einer Hexadezimalzahl (Key) in eine Liste mit den Segmenten, welche vorhanden sind (Value)
+# => 1: Segment ist an; 0: Segment ist aus
+# Indizes starten beim obersten Segment (0) und folgen dem Urzeigersinn => Index 6 ist das mittlere Segement (siehe Dokumentation)
 hexInSSD = {
     "F": [1, 0, 0, 0, 1, 1, 1],
     "E": [1, 0, 0, 1, 1, 1, 1],
@@ -31,6 +32,7 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
+# Das Äquivalent für das Binärsystem
 binInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
@@ -43,8 +45,8 @@ binInSSD = {
 # übrigerUmsatz => Segemente, die nach dem umwandeln übrig sind (Standardmäßig 0)
 # schritte => Liste der Schritte/Umlegungen, die getätigt werden.
 #     Schritt := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
-# tempOptionen => Liste an Optionen welche bereits ausprobiert wurden und gescheitert sind (für Optimierung) (Standardmäßig leer) 
-def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[],tempOptionen = []):
+# tempOptionen => Liste an Optionen welche bereits ausprobiert wurden und gescheitert sind (für Optimierung) (Standardmäßig leer)
+def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], tempOptionen=[]):
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
         # Check ob Segmente übrig sind => Die Lösung ist nicht valide
@@ -74,7 +76,7 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[],tem
         # sonst wird die gesamte Hexadezimalziffer verringert (siehe Stellenwertsystem)
         if i == ziffer and (len(schritte) == 0 or übrigerUmsatz == 0):
             # Die aktuelle Ziffer bleibt unverändert ... es wird mit der nächsten fortgefahren
-            return umwandeln(maxUmlegungen, hexZahl,
+            return maxZiffer(maxUmlegungen, hexZahl,
                              index+1, übrigerUmsatz, schritte)
         # Die aktuell übrigen Segmente entsprechen dem Segmentumsatz
         übrigeSegmente = übrigerUmsatz
@@ -119,13 +121,13 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[],tem
             # Die Umformung ist nicht möglich, wenn die übrige Umlegungen nicht genug sind
             # (Es darf nicht mehr schritte als Umlegungen geben)
             if len(schritteNeu) > maxUmlegungen:
-                tempOptionenNeu.append([ziffer,i])
+                tempOptionenNeu.append([ziffer, i])
                 break
-            
+
         else:
             # Wird ausgeführt wenn nicht gebreakt wurde
             # Es kann mit der nächsten Ziffer fortgefahren werden
-            result = umwandeln(maxUmlegungen, hexZahl,
+            result = maxZiffer(maxUmlegungen, hexZahl,
                                index+1, übrigeSegmente, schritte=schritteNeu)
 
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
@@ -136,21 +138,21 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[],tem
     # Es wurde keine Lösung gefunden
     return []
 
-# solve-Funktion => initialisierung des Lösungsprozesses und Ausgabe der Lösung
-# hexZahl := String der Hexadezimalzahl
-# maxUmlegungen := maximale Anzahl an Umlegungen
-# zwischenstandAnzeige := True, wenn die Zwischenstände angezeigt werden sollen
-def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
-    # Ermitteln der Lösung mithilfe von "umwandeln"
-    ergebnis = umwandeln(maxUmlegungen, hexZahl)
-    # Ergebnis
+# Funktion zur Initialisierung des Lösungsprozesses und Anzeige
+# hexZahl: Hexadezimalzahl, welche maximiert werden soll (String)
+# maxUmlegungen: maximale Anzahl an Umlegungen
+# zwischenstandAnzeige: True, wenn die Zwischenstände angezeigt werden sollen
+def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
+    # Ermitteln der nötigen Umlegungen zur Maximierung der Hexadezimalzahl mithilfe von "maxZiffer"
+    ergebnis = maxZiffer(maxUmlegungen, hexZahl)
+    # Maximale Hexadezimalzahl muss aus den Umlegungen "zurückgewonnen" werden
     ergebnisString = ""
-    # Check ob Umlegungen getätigt wurden
+    # Check ob überhaupt Umlegungen getätigt wurden
     if len(ergebnis) > 0:
-        # Es wurde eine Lösung gefunden
+        # Es wurden Umlegungen getätigt
         # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
         ssd = [hexInSSD[i].copy() for i in hexZahl]
-        # Ausagbe der Starthexzahl in der SSA (nur wenn weniger als 40 schritte ausgegeben werden müssen)
+        # Ausagbe der Starthexzahl wenn gewünscht
         if zwischenstandAnzeige:
             printSSD(ssd)
         # Iteraion über die ermittleten Umlegungen
@@ -158,20 +160,15 @@ def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
             # Durchführen der Umlegung
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
-            # Ausgabe der SSA (nur wenn weniger als 40 schritte ausgegeben werden müssen)
+            # Ausgabe der SSA wenn gewünscht
             if zwischenstandAnzeige:
                 printSSD(ssd)
-        # Ermitteln der Lösungszahl
-        # (Umformen von der SSA-Darstellung in einen String)
-
         # Iteration über alle Ziffern in der SSA
         for anzeige in ssd:
             # Hinzufügen der Ziffer im Stringformat (Umformung über die Dictionary s.o.)
-            ergebnisString += list(hexInSSD.keys()
-                                   )[list(hexInSSD.values()).index(anzeige)]
-
+            ergebnisString += list(hexInSSD.keys())[list(hexInSSD.values()).index(anzeige)]
     else:
-        # Es wurden keine Umformungen getätigt
+        # Es wurden keine Umlegungen getätigt
         # Es ist bereits die maximale Hexadezimalzahl
         ergebnisString = hexZahl
 
@@ -179,11 +176,9 @@ def solve(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
     return ergebnisString, len(ergebnis)
 
 # Funktion zur Ausgabe eines SSDs in der Konsole
-# SSD := Liste der Darstellungen von Ziffern (Liste von Listen mit 7 Elementen)
-
-
-def printSSD(SSD,):
-    # Iteration über alle Segmente der Ziffern des SSD
+# SSD := Liste der Darstellungen von Ziffern (Liste von Sublisten mit 7 Elementen := Segmenten)
+def printSSD(SSD):
+    # Hardcoded Ausgabe der einzelnen Segmente
     lines = ["" for _ in range(5)]
     for ziffer in SSD:
         if ziffer[0] == 1:
@@ -219,44 +214,61 @@ def printSSD(SSD,):
 
 # Funktion zum Lesen des Inputs
 def parseInput():
-    if(len(argv) == 1):  # Es wurde kein extra Argument angegeben
+    # Überprüfung ob kein Argument angegeben wurde
+    if(len(argv) == 1):
+        # Fragen nach Eingabedatei
         file = input("Eingabedatei eingeben:")
-    else:  # Es wurde ein extra Argument angegeben
+    else:
+        # Lesen der Eingabedatei aus den Argumenten
         file = argv[1]
-    if(not exists(file)):  # Check ob die angegebene Datei nicht existiert
+    # Überprüfung ob die Eingabedatei existiert
+    if(not exists(file)):
+        # Ausgabe eines Fehlers
         print("\033[1;31mDatei nicht gefunden\033[0m")
         return None
-    with open(file=file, mode="r") as data:  # Öffnen der angegebenen Datei
-        inhalt = data.readlines()  # Lesen der Zeilen
-        inhalt = [i.replace("\n", "")
-                  for i in inhalt]  # Zeilenumbrüche entfernen
-        hexZahl = inhalt[0]  # Die Hexzahl befindet sich in der ersten Zeile
-        # Die Maximalzahl an Umlegungen m befindet sich in der zweiten Zeile
+    # Öfnnen der Eingabedatei (im Lesemodus)
+    with open(file=file, mode="r") as data:
+        # Lesen aller Zeilen der Eingabedatei
+        inhalt = data.readlines()
+        # Bereinigen der Zeilen (Zeilenumbrüche entfernen)
+        inhalt = [i.replace("\n", "") for i in inhalt]
+        # Hexadezimalzahl
+        hexZahl = inhalt[0]
+        # Maximalzahl an Umlegungen
         m = int(inhalt[1])
         # Zurückgeben der gelesenen Daten (...und File, für Benennung der Ergebnisdatei)
         return hexZahl, m, file
 
-
-def main():  # Startpunkt des Programmes
-    input = parseInput()  # Lesen des Inputs
-    if(input is None):
+# Hauptfunktion (Ausführung des Programms)
+def main():
+    # Sicheres Lesen des Inputs
+    try:
+        hexZahl, m, file = parseInput()
+    except Exception as e:
+        # Ausgabe des Fehlers
+        print("Input konnte nicht gelesen werden: {}".format(e))
         return
-    # Lesen der Flagge -z für Zwischenstand anzeigen
-    zwischenstandAnzeige = False
-    if len(argv) >= 3:
-        zwischenstandAnzeige = argv[2] == "-z"
-    # Lösen des Problems
-    ergebnis, umlegungen = solve(input[0], input[1], zwischenstandAnzeige)
-    # Ausgabe der Lösungszahl
-    print("Lösung:", ergebnis)
-    print(umlegungen, "Umlegungen benötigt")
+    # Lesen der Flagge -d für Zwischenstand anzeigen
+    zwischenstandAnzeige = "-d" in argv
+    # Maximieren der eingelesenen Hexadezimalzahl mit maximal m Umlegungen
+    lösung, umlegungen = maximieren(hexZahl, m, zwischenstandAnzeige)
     # Schreiben der Lösungsdatei
-    with open("ergebnis_" + input[2], "w") as f:
-        f.write(ergebnis)
+    with open("ergebnis_" + file, "w") as f:
+        # Ausgabe der Lösungszahl
+        print("Lösung:", lösung)
+        # Ausgabe der benötigten Umlegungen
+        print("{}/{} Umlegungen benötigt".format(umlegungen, m))
+        # Schreiben der Lösung
+        f.write(lösung + "\n" + "{}/{}".format(umlegungen, m))
 
 
+# Startpunkt des Programms
 if __name__ == "__main__":
-    start_time = time.time()  # Startzeit des Programmes
+    # Aufnahme der Startzeit
+    startTime = time()
+    # Ausführung
     main()
-    # Ausgeben der Execution-Time
-    print("--- %s Sekunden ---" % round(time.time() - start_time, 4))
+    # Aufnahme der Endzeit
+    endTime = time()
+    # Ausgabe der Laufzeit
+    print("--- {:.4f} Sekunden ---".format(endTime - startTime))
