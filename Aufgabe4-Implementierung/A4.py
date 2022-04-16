@@ -13,6 +13,7 @@ def gaussianElimination(n, k, m, karten):
     for i in range(n):
         for j in range(m):
             tMatrix[j][i] = int(karten[i][j])
+    # tMatrix.append([1 for _ in range(n)]+[k % 2])
     # Eliminierungsverfahren
     for r1 in range(len(tMatrix)):
         for c1 in range(len(tMatrix[r1])):
@@ -23,53 +24,100 @@ def gaussianElimination(n, k, m, karten):
                             tMatrix[r2][c2] = (tMatrix[r2][c2] +
                                                tMatrix[r1][c2]) % 2
                 break
-    # print(tMatrix)
+    # for r in tMatrix:
+     #   print(r)
     # print(sum([sum(i)-1 if sum(i)-1 > 0 else 0 for i in transponierteMatrix]))
     lösungen = []
     # Herausfinden von Variablen
-    variablen = []
+    variablen = {}
     for i in range(len(tMatrix)):
-        leading1 = False
-        for j in range(len(tMatrix[i])):
+        index = None
+        for j in range(len(tMatrix[i])-1):
             if tMatrix[i][j] == 1:
-                if not leading1:
-                    leading1 = True
+                if index is None:
+                    index = j
                 else:
-                    if j not in variablen:
-                        variablen.append(j)
+                    if j not in variablen.keys():
+                        variablen[j] = [index]
+                    else:
+                        variablen[j].append(index)
 
-    print(variablen)
-    if True:
-        print("BRUTE", 2**len(variablen))
-        # Brute Force der Variablen
-        for i in range(2**len(variablen)):
-            # Bestimmen der Werte für alle Variablen
-            variablenWerte = str(bin(i)[2:].zfill(len(variablen)))
-            #print("VARS", variablenWerte[::-1])
-            lösung = [(0 if col not in variablen else int(
-                variablenWerte[variablen.index(col)])) for col in range(n)]
-            # print(lösung)
-            for r in range(len(tMatrix)):
-                summe = 0
-                index = 0
-                leading1 = False
-                for c in range(len(tMatrix[r])-1):
-                    if tMatrix[r][c] == 1:
-                        if leading1:
-                            summe = (
-                                int(variablenWerte[variablen.index(c)]) + summe) % 2
-                        else:
-                            index = c
-                            leading1 = True
-                lösung[index] = summe
-            indizes = []
-            for l in range(len(lösung)):
-                if lösung[l] == 1:
-                    indizes.append(l)
-            if len(indizes) == k+1:
-                lösungen.append(indizes)
-    print(lösungen)
-    return lösungen
+    processedVariablen = {}
+    anzahl1 = []
+    for variable in variablen.keys():
+        processedVariablen[variable] = ""
+        anzahlVar = 0
+        for i in range(n-len(variablen)):
+            if i in variablen[variable]:
+                processedVariablen[variable] += "1"
+                anzahlVar += 1
+            else:
+                processedVariablen[variable] += "0"
+        anzahl1.append([variable, anzahlVar])
+    anzahl1.sort(key=lambda x: x[1], reverse=True)
+    for r in processedVariablen.keys():
+        print(r, processedVariablen[r])
+
+    print(len(processedVariablen))
+
+    kombinationen = []
+    overallIterations = 0
+    for i in range(len(processedVariablen)):
+        variable = list(processedVariablen.keys())[i]
+        for j in range(len(kombinationen), -1, -1):
+            overallIterations += 1
+            if j == len(kombinationen):
+                neueKombination = [[variable], processedVariablen[variable]]
+            else:
+                neueKombination = [kombinationen[j][0] + [variable],
+                                   "{0:b}".format(int(processedVariablen[variable], 2) ^ int(kombinationen[j][1], 2))]
+
+            if neueKombination[1].count("1")+len(neueKombination[0]) == k+1:
+                print("FOUND")
+                print(neueKombination)
+                lösungen.append(neueKombination)
+            möglich = len(neueKombination[0]) < k+1  # math.ceil((k+1)/2)+1
+            if möglich:
+                übrigeVariablen = k+1 - len(neueKombination[0])
+                maximalAnzahl1 = 0
+                benutzt = 0
+                for p in range(len(anzahl1)):
+                    if anzahl1[p][0] not in neueKombination[0]:
+                        maximalAnzahl1 += anzahl1[p][1]
+                        benutzt += 1
+                        if benutzt == übrigeVariablen:
+                            break
+                if neueKombination[1].count("1")+len(neueKombination[0]) - (maximalAnzahl1+benutzt) > k+1:
+                    möglich = False
+
+            if möglich:
+                kombinationen.append(neueKombination)
+        print(i, len(kombinationen), overallIterations)
+
+    # Fusionieren der Lösungskombinationen
+    '''for i in range(len(kombinationen)):
+        if i % 1000 == 0:
+            print(i)
+        for j in range(i+1, len(kombinationen)):
+            for element in kombinationen[i][0]:
+                if element in kombinationen[j][0]:
+                    break
+            else:
+
+                neueKombination = [kombinationen[j][0] + kombinationen[i][0],
+                                   "{0:b}".format(int(kombinationen[i][1], 2) ^ int(kombinationen[j][1], 2))]
+                if neueKombination[1].count("1")+len(neueKombination[0]) == k+1:
+                    lösungen.append(neueKombination)'''
+
+    processedLösungen = []
+    for lösung in lösungen:
+        lösung[1] = lösung[1].zfill(n-len(processedVariablen))
+        processedLösungen.append(lösung[0])
+        for i in range(len(lösung[1])):
+            if lösung[1][i] == "1":
+                processedLösungen[-1].append(i)
+    print(processedLösungen)
+    return processedLösungen
 
 # Funktion zum Lesen des Inputs
 
