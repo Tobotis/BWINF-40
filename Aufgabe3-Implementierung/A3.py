@@ -31,15 +31,20 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
+binInSSD = {
+    "1": [0, 1, 1, 0, 0, 0, 0],
+    "0": [1, 1, 1, 1, 1, 1, 0],
+}
 
-# umwandeln-Funktion => rekursives Vorgehen zum Maximieren einer Hexadezimalzahl im SSD
+# umwandeln-Funktion: rekursives Vorgehen zum Maximieren einer Hexadezimalzahl im SSD
 # maxUmlegungen => Umlegungen, die maximal getätigt werden dürfen
 # hexZahl => Hexadezimalzahl, die umwandelt werden soll
 # index => Index der aktuellen Ziffer in der Hexadezimalzahl (Standardmäßig 0)
 # übrigerUmsatz => Segemente, die nach dem umwandeln übrig sind (Standardmäßig 0)
 # schritte => Liste der Schritte/Umlegungen, die getätigt werden.
 #     Schritt := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
-def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
+# tempOptionen => Liste an Optionen welche bereits ausprobiert wurden und gescheitert sind (für Optimierung) (Standardmäßig leer) 
+def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[],tempOptionen = []):
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
         # Check ob Segmente übrig sind => Die Lösung ist nicht valide
@@ -75,6 +80,8 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
         übrigeSegmente = übrigerUmsatz
         # Kopie der Schritte um Mutation zu vermeiden
         schritteNeu = schritte.copy()
+        # Kopie der ausgeschiedenen Optionen um Mutation zu vermeiden
+        tempOptionenNeu = tempOptionen.copy()
         # Iteration über alle Segmente der Ziffern
         for segment in range(7):
             # Check ob das Segment von i in der Ausgangsziffer fehlt
@@ -112,7 +119,9 @@ def umwandeln(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[]):
             # Die Umformung ist nicht möglich, wenn die übrige Umlegungen nicht genug sind
             # (Es darf nicht mehr schritte als Umlegungen geben)
             if len(schritteNeu) > maxUmlegungen:
+                tempOptionenNeu.append([ziffer,i])
                 break
+            
         else:
             # Wird ausgeführt wenn nicht gebreakt wurde
             # Es kann mit der nächsten Ziffer fortgefahren werden
@@ -209,8 +218,6 @@ def printSSD(SSD,):
         print(line)
 
 # Funktion zum Lesen des Inputs
-
-
 def parseInput():
     if(len(argv) == 1):  # Es wurde kein extra Argument angegeben
         file = input("Eingabedatei eingeben:")
