@@ -38,15 +38,16 @@ binInSSD = {
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
 
-# umwandeln-Funktion: rekursives Vorgehen zum Maximieren einer Hexadezimalzahl im SSD
-# maxUmlegungen => Umlegungen, die maximal getätigt werden dürfen
-# hexZahl => Hexadezimalzahl, die umwandelt werden soll
-# index => Index der aktuellen Ziffer in der Hexadezimalzahl (Standardmäßig 0)
-# übrigerUmsatz => Segemente, die nach dem umwandeln übrig sind (Standardmäßig 0)
-# schritte => Liste der Schritte/Umlegungen, die getätigt werden.
-#     Schritt := [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
-# tempOptionen => Liste an Optionen welche bereits ausprobiert wurden und gescheitert sind (für Optimierung) (Standardmäßig leer)
-def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], tempOptionen=[]):
+# Funktion für rekursives Vorgehen zum Maximieren einer Hexadezimalzahl im SSD
+# maxUmlegungen: Umlegungen, die maximal getätigt werden dürfen
+# hexZahl: Hexadezimalzahl, die umwandelt werden soll
+# index: Index der aktuellen Ziffer in der Hexadezimalzahl (Standardmäßig 0)
+# übrigerUmsatz: Segemente, die nach dem umwandeln übrig sind (Standardmäßig 0)
+# schritte: Liste der Schritte/Umlegungen, die getätigt werden.
+#     Schritt: [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
+# tempOptionen: Liste an Optionen welche bereits ausprobiert wurden und gescheitert sind (für Optimierung) (Standardmäßig leer)
+# min: True, wenn die Zahl minimiert werden soll (Standardmäßig False)
+def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], tempOptionen=[], min = False):
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
         # Check ob Segmente übrig sind => Die Lösung ist nicht valide
@@ -68,7 +69,7 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
     # Festlegen der aktuellen Ziffer der Hexzahl
     ziffer = hexZahl[index]
     # Iteration über alle anderen Hexziffern von F bis 0
-    for i in hexInSSD.keys():
+    for i in (reversed(hexInSSD.keys()) if min else hexInSSD.keys()):
         # Check ob man bei der aktuellen Ziffer angekommen ist
         # Es folgen somit niedrigere Hexziffern
         # => nur fortfahren, wenn bereits Umlegungen getätigt worden sind
@@ -142,9 +143,10 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
 # hexZahl: Hexadezimalzahl, welche maximiert werden soll (String)
 # maxUmlegungen: maximale Anzahl an Umlegungen
 # zwischenstandAnzeige: True, wenn die Zwischenstände angezeigt werden sollen
-def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False):
+# min: True, wenn die hexZahl minimiert statt maximiert werden soll
+def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False):
     # Ermitteln der nötigen Umlegungen zur Maximierung der Hexadezimalzahl mithilfe von "maxZiffer"
-    ergebnis = maxZiffer(maxUmlegungen, hexZahl)
+    ergebnis = maxZiffer(maxUmlegungen, hexZahl, min=min)
     # Maximale Hexadezimalzahl muss aus den Umlegungen "zurückgewonnen" werden
     ergebnisString = ""
     # Check ob überhaupt Umlegungen getätigt wurden
@@ -250,8 +252,10 @@ def main():
         return
     # Lesen der Flagge -d für Zwischenstand anzeigen
     zwischenstandAnzeige = "-d" in argv
+    # Lesen der Flagge -min für Minimierung statt Maximierung
+    min = "-min" in argv
     # Maximieren der eingelesenen Hexadezimalzahl mit maximal m Umlegungen
-    lösung, umlegungen = maximieren(hexZahl, m, zwischenstandAnzeige)
+    lösung, umlegungen = maximieren(hexZahl, m, zwischenstandAnzeige, min)
     # Schreiben der Lösungsdatei
     with open("ergebnis_" + file, "w") as f:
         # Ausgabe der Lösungszahl
