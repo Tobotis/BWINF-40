@@ -7,7 +7,7 @@ from sys import argv
 # Für sehr große Eingaben, muss das Rekursionslimit hochgestellt werden (Maximale Rekursionstiefe)
 # => Entspricht im Sachzusammenahang der Anzahl an Ziffern in der Eingabedatei
 from sys import setrecursionlimit
-setrecursionlimit(1200)
+setrecursionlimit(2000)
 
 
 # Dictionary den Segmenten des Sieben-Segment-Displays (SSD) (von F bis 0)
@@ -66,10 +66,15 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
     if übrigerUmsatz < (-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
         # Die Anzahl der ''Lücken'' in den bereits umegelegten Ziffern ist größer als die Anzahl der übrigen Segmente in den hinteren Ziffern
         return []
+    # Kopie der ausgeschiedenen Optionen um Mutation zu vermeiden
+    tempOptionenNeu = tempOptionen.copy()
     # Festlegen der aktuellen Ziffer der Hexzahl
     ziffer = hexZahl[index]
     # Iteration über alle anderen Hexziffern von F bis 0
     for i in (reversed(hexInSSD.keys()) if min else hexInSSD.keys()):
+        # Überprüfen, ob die Option bereits bei einer anderen Ziffer ausgeschieden ist
+        if (ziffer, i) in tempOptionenNeu:
+            continue 
         # Check ob man bei der aktuellen Ziffer angekommen ist
         # Es folgen somit niedrigere Hexziffern
         # => nur fortfahren, wenn bereits Umlegungen getätigt worden sind
@@ -78,13 +83,11 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
         if i == ziffer and (len(schritte) == 0 or übrigerUmsatz == 0):
             # Die aktuelle Ziffer bleibt unverändert ... es wird mit der nächsten fortgefahren
             return maxZiffer(maxUmlegungen, hexZahl,
-                             index+1, übrigerUmsatz, schritte)
+                             index+1, übrigerUmsatz, schritte, tempOptionen=tempOptionenNeu)
         # Die aktuell übrigen Segmente entsprechen dem Segmentumsatz
         übrigeSegmente = übrigerUmsatz
         # Kopie der Schritte um Mutation zu vermeiden
         schritteNeu = schritte.copy()
-        # Kopie der ausgeschiedenen Optionen um Mutation zu vermeiden
-        tempOptionenNeu = tempOptionen.copy()
         # Iteration über alle Segmente der Ziffern
         for segment in range(7):
             # Check ob das Segment von i in der Ausgangsziffer fehlt
@@ -122,20 +125,24 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
             # Die Umformung ist nicht möglich, wenn die übrige Umlegungen nicht genug sind
             # (Es darf nicht mehr schritte als Umlegungen geben)
             if len(schritteNeu) > maxUmlegungen:
-                tempOptionenNeu.append([ziffer, i])
+                tempOptionenNeu.append([ziffer,i])
                 break
 
         else:
             # Wird ausgeführt wenn nicht gebreakt wurde
             # Es kann mit der nächsten Ziffer fortgefahren werden
+            # Leere tempOptionen, wenn die Ziffer umgelegt wurde, weil dadurch möglicherweise neue Optionen möglich werden
             result = maxZiffer(maxUmlegungen, hexZahl,
-                               index+1, übrigeSegmente, schritte=schritteNeu)
+                               index+1, übrigeSegmente, schritte=schritteNeu, tempOptionen=([] if i != ziffer else tempOptionenNeu))
 
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
             if len(result) > 0:
                 return result
-            # Andernfalls wird mit der nächsten Ziffer fortgefahren
+            else:
+                #print(tempOptionenNeu)
+                # Andernfalls wird die gewählte Option zu den nicht gefundenen Optionen hinzugefügt
+                tempOptionenNeu.append((ziffer,i))
     # Es wurde keine Lösung gefunden
     return []
 
