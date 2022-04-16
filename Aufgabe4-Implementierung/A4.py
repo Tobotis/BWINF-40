@@ -1,13 +1,100 @@
-# Zeitmessung der Execution-Time
+# Für Messung der Laufzeit
 import time
-# Zum Überprüfen ob Files exisitieren
+# Zum Überprüfen ob Dateien exisitieren
 from os.path import exists
-# Zur Übergabe von Argumenten in der Kommandozeile
+# Zur Übergabe von Argumenten im Terminal
 from sys import argv
-import math
+# Zum Berechnen von Fakultäten und Auf-/Abrundungen
+from math import factorial,ceil,floor
+
+# Funktion zum Anwenden von Brute Force auf das Gesamtproblem (Kombination aller n Karten)
+# n: Gesamtzahl an Karten
+# k: Anzahl an Gesamtkarten! (Öffnungskarten + 1)
+# m: Anzahl Bits pro Karte
+# karten: Liste aller Karten (Strings)
+def bfAll(n, k, m, karten):
+    länge = k//2
+    if k % 2 == 1:
+        längeA = ceil(k/2)
+        längeB = floor(k/2)
+    # Liste aller Kombinationen der Karten (Zwischenspeicherung)
+    kombinationen = []
+    # Liste der Kombination mit Länge A
+    kombinationenA = []
+    # Liste der Kombinationen mit Länge B
+    kombinationenB = []
+    # Iteration über alle Karten
+    for i in range(n):
+        # Iteration über alle bisherigen Kombinationen (+1 extra Iteration für eine vollständig neue Kombination)
+        for j in range(len(kombinationen), -1, -1):
+            # Überprüfung ob es sich um die erste Iteration handelt
+            if j == len(kombinationen):
+                # Hinzufügen einer neuen Kombination für die Karte i
+                kombinationen.append([[i], karten[i]])
+            else:
+                # Erweitern von Kombination j um die Karte i
+                neueKombination = [kombinationen[j][0] + [i], "{0:b}".format(int(kombinationen[j][1], 2) ^ int(karten[i], 2)).zfill(m)]
+            # Überprüfung ob es zwei Listen mit verschiedenen Längen gibt
+            if k % 2 == 1:
+                # Hinzufügen der neuen Kombination in die zugehörige Liste
+                if len(neueKombination[0]) == längeA:
+                    kombinationenA.append(neueKombination)
+                elif len(neueKombination[0]) == längeB:
+                    kombinationenB.append(neueKombination)
+                elif len(neueKombination[0]) < längeB:
+                    # Die neue Kombination kann noch erweitert werden
+                    kombinationen.append(neueKombination)
+            else:
+                # Hinzufügen der neuen Kombination in die Liste A (Es gibt eine einheitliche Länge)
+                if len(neueKombination[0]) == länge:
+                    kombinationenA.append(neueKombination)
+                elif len(neueKombination[0]) < länge:
+                    # Die neue Kombination kann noch erweitert werden
+                    kombinationen.append(neueKombination)
+                
+    # Sortieren der Listen nach dem Wert des XORS
+    kombinationenA.sort(key= lambda x: int(x[1],2))
+    kombinationenB.sort(key= lambda x: int(x[1],2))
+
+    # Suchen nach Duplikaten in den/der Liste/-n
+    if k % 2 == 0:
+        letzteKombination = kombinationenA[0][1]
+        for kombination in kombinationenA[1:]:
+            if kombination[1] == letzteKombination:
+                print("FOUND SOLUTION:", letzteKombination, kombination)
+                break
+    else:
+        # TODO
+        pass
+
+# rekursive Funktion zum Anwenden von Brute Force auf das Restproblem (Kombination der Variablen nach dem Gauss-Algorithmus)
+# => nur bei unterdeterminierten Eingaben/Matrizen (wenn n>m)
+# k: Anzahl an Gesamtkarten! (Öffnungskarten + 1)
+# variablen: Liste der Bitstrings der Variablen (Auswirkung auf das Ergebnis des Gauss-Algorithmus)
+# index: Index der aktuellen Variable
+# zweig: Bitstring (XOR der in diesem Zweig benutzten Variablen) 
+def bfVars(k, variablen, index, zweig):
+    # Überprüfung ob der aktuelle Zweig einer Lösung entspricht (Anzahl an 1 = Anzahl an zu benutzenden Karten)
+    if zweig.count("1") == k:
+        return zweig
+    elif len(zweig[0]) > k:
+        # print("breaking",index,zweig)
+        return None
+    else:
+        if index > len(variablen)-1:
+            return None
+        variable = list(variablen.keys())[index]
+        wert = variablen[variable]
+        neuerZweig = [zweig[0] + [variable],
+                      "{0:b}".format(int(zweig[1], 2) ^ int(wert, 2))]
+        result = bfVars(k, variablen, index+1, neuerZweig)
+        if result is None:
+            return bfVars(k, variablen, index+1, zweig)
+        else:
+            return result
 
 
-def gaussianElimination(n, k, m, karten):
+def gaussElim(n, k, m, karten):
     # Transponieren der Matrix
     tMatrix = [[0 for _ in range(n+1)] for _ in range(m)]
     for i in range(n):
@@ -62,7 +149,9 @@ def gaussianElimination(n, k, m, karten):
 
     kombinationen = []
     overallIterations = 0
-    for i in range(len(processedVariablen)):
+    lösung = bfVars(k, processedVariablen, 0, [[], "0"])
+    print(lösung)
+    '''for i in range(len(processedVariablen)):
         variable = list(processedVariablen.keys())[i]
         for j in range(len(kombinationen), -1, -1):
             overallIterations += 1
@@ -92,7 +181,7 @@ def gaussianElimination(n, k, m, karten):
 
             if möglich:
                 kombinationen.append(neueKombination)
-        print(i, len(kombinationen), overallIterations)
+        print(i, len(kombinationen), overallIterations)'''
 
     # Fusionieren der Lösungskombinationen
     '''for i in range(len(kombinationen)):
@@ -110,61 +199,76 @@ def gaussianElimination(n, k, m, karten):
                     lösungen.append(neueKombination)'''
 
     processedLösungen = []
-    for lösung in lösungen:
-        lösung[1] = lösung[1].zfill(n-len(processedVariablen))
-        processedLösungen.append(lösung[0])
-        for i in range(len(lösung[1])):
-            if lösung[1][i] == "1":
-                processedLösungen[-1].append(i)
+    # for lösung in lösungen:
+    lösung[1] = lösung[1].zfill(n-len(processedVariablen))
+    processedLösungen.append(lösung[0])
+    for i in range(len(lösung[1])):
+        if lösung[1][i] == "1":
+            processedLösungen[-1].append(i)
     print(processedLösungen)
     return processedLösungen
 
 # Funktion zum Lesen des Inputs
-
-
 def parseInput():
-    if(len(argv) == 1):  # Es wurde kein extra Argument angegeben
+    # Überprüfung ob ein Argument angegeben wurde
+    if(len(argv) == 1):
+        # Fragen nach Eingabedatei
         file = input("Eingabedatei eingeben:")
-    else:  # Es wurde ein extra Argument angegeben
+    else:
+        # Lesen der Eingabedatei aus den Argumenten
         file = argv[1]
-    if(not exists(file)):  # Check ob die angegebene Datei nicht existiert
+    # Überprüfung ob die Eingabedatei existiert
+    if(not exists(file)):
+        # Ausgabe eines Fehlers
         print("\033[1;31mDatei nicht gefunden\033[0m")
         return None
-    with open(file=file, mode="r") as data:  # Öffnen der angegebenen Datei
-        inhalt = data.readlines()  # Lesen der Zeilen
-        inhalt = [i.replace("\n", "")
-                  for i in inhalt]  # Zeilenumbrüche entfernen
-        # Gesamtzahl an Karten
+    # Öffnen der Eingabedatei (im Lesemodus)
+    with open(file=file, mode="r") as data: 
+        # Lesen aller Zeilen der Eingabedatei
+        inhalt = data.readlines()
+        # Bereinigen der Zeilen (Zeilenumbrüche entfernen)
+        inhalt = [i.replace("\n", "") for i in inhalt]
+        # Gesamtzahl an Karten auslesen
         n = int(inhalt[0].split(" ")[0])
-        # Anzahl Öffnungskarten
+        # Anzahl Öffnungskarten auslesen
         k = int(inhalt[0].split(" ")[1])
-        # Anzahl der Bits
+        # Anzahl der Bits auslesen
         m = int(inhalt[0].split(" ")[2])
-        # Karten
+        # Karten auslesen
         karten = inhalt[1:]
         # Zurückgeben der gelesenen Daten (...und File, für Benennung der Ergebnisdatei)
         return n, k, m, karten, file
 
-
-def main():  # Startpunkt des Programmes
-    input = parseInput()  # Lesen des Inputs
-    if(input is None):
+# Hauptfunktion (Ausführung des Programms)
+def main():
+    # Sicheres Lesen des Inputs
+    try:
+        n, k, m, karten, file = parseInput()
+    except Exception as e:
+        # Ausgabe des Fehlers
+        print("Input konnte nicht gelesen werden: {}".format(e))
         return
-    # Lösen des Problems
-    lösungen = gaussianElimination(input[0], input[1], input[2], input[3])
-    # Ausgabe der Lösungszahl
+    # Anwenden des Gauss-Algorithmus auf den gelsenen Input
+    # => Übergeben von k+1, da die Gesamtzahl an XOR-Karten = Öffnungskarten + Sicherungskarten
+    lösungen = gaussElim(n, k+1, m, karten)
     # Schreiben der Lösungsdatei
-    with open("ergebnis_" + input[4], "w") as f:
+    with open("ergebnis_" + file, "w") as f:
+        # Iteration über alle Lösungen
         for lösung in lösungen:
+            # Itearation über alle Kartenindizes der Lösung
             for index in lösung:
-                print(input[3][index])
+                # Schreiben der Kartenwerte in die Datei
                 f.write(input[3][index] + "\n")
+            # Trennung der Lösungen über ein \n
             f.write("\n")
-            print()
 
-
+# Startpunkt des Programms
 if __name__ == "__main__":
-    start_time = time.time()  # Startzeit des Programmes
+    # Aufnahme der Startzeit
+    startTime = time.time()
+    # Ausführung
     main()
-    # Ausgeben der Execution-Time
-    print("--- %s Sekunden ---" % round(time.time() - start_time, 4))
+    # Aufnhame der Endzeit
+    endTime = time.time()
+    # Ausgabe der Zeit
+    print("--- {:.4f} Sekunden ---".format(endTime - startTime))
