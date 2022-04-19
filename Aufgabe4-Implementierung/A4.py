@@ -1,5 +1,5 @@
 # Für Messung der Laufzeit
-import time
+from time import time
 # Zum Überprüfen ob Dateien exisitieren
 from os.path import exists
 # Zur Übergabe von Argumenten im Terminal
@@ -210,7 +210,7 @@ def gaussElim(n, k, m, karten):
 
 # Funktion zum Lesen des Inputs
 def parseInput():
-    # Überprüfung ob ein Argument angegeben wurde
+    # Überprüfung ob kein Argument angegeben wurde
     if(len(argv) == 1):
         # Fragen nach Eingabedatei
         file = input("Eingabedatei eingeben:")
@@ -257,18 +257,21 @@ def main():
         for lösung in lösungen:
             # Itearation über alle Kartenindizes der Lösung
             for index in lösung:
+                # Ausgabe der Lösung
+                print(input[3][index])
                 # Schreiben der Kartenwerte in die Datei
                 f.write(input[3][index] + "\n")
             # Trennung der Lösungen über ein \n
             f.write("\n")
+            print()
 
 # Startpunkt des Programms
 if __name__ == "__main__":
     # Aufnahme der Startzeit
-    startTime = time.time()
+    startTime = time()
     # Ausführung
     main()
     # Aufnhame der Endzeit
-    endTime = time.time()
-    # Ausgabe der Zeit
+    endTime = time()
+    # Ausgabe der Laufzeit
     print("--- {:.4f} Sekunden ---".format(endTime - startTime))
