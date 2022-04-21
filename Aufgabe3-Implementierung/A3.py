@@ -32,7 +32,7 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
-# Das Äquivalent für das Dezimalsystem
+# Das Äquivalent für das Dezimalsystem (Erweiterung)
 decInSSD = {
     "9": [1, 1, 1, 1, 0, 1, 1],
     "8": [1, 1, 1, 1, 1, 1, 1],
@@ -45,7 +45,7 @@ decInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
-# Das Äquivalent für das Binärsystem
+# Das Äquivalent für das Binärsystem (Erweiterung)
 binInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
