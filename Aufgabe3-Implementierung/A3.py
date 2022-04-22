@@ -166,6 +166,8 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
 def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False, inSSD=hexInSSD):
     # Ermitteln der nötigen Umlegungen zur Maximierung der Hexadezimalzahl mithilfe von "maxZiffer"
     ergebnis = maxZiffer(maxUmlegungen, hexZahl, min=min, inSSD=inSSD)
+    # Rohe Ausgabe aller Umlegungen
+    #print("Umlegungen:",ergebnis)
     # Maximale Hexadezimalzahl muss aus den Umlegungen "zurückgewonnen" werden
     ergebnisString = ""
     # Check ob überhaupt Umlegungen getätigt wurden
@@ -174,7 +176,7 @@ def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False, in
         # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
         ssd = [inSSD[i].copy() for i in hexZahl]
         # Ausgabe des Zwischenstandes in roher Form
-        print("\nZwischenstand (jede Subliste steht für eine Ziffer):\n\n" + str(ssd) + "\n")
+        #print("\nZwischenstand (jede Subliste steht für eine Ziffer):\n\n" + str(ssd) + "\n")
         # Ausagbe der Starthexzahl wenn gewünscht
         if zwischenstandAnzeige:
             printSSD(ssd)
@@ -185,7 +187,7 @@ def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False, in
             ssd[schritt[2]][schritt[3]] = 1
             
             # Ausgabe des Zwischenstandes in roher Form
-            print("\n" + str(i+1) + ": " + str(ssd) + "\n")
+            #print("\n" + str(i+1) + ": " + str(ssd) + "\n")
             # Ausgabe der SSA wenn gewünscht
             if zwischenstandAnzeige:
                 printSSD(ssd)
