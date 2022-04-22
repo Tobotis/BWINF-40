@@ -1,3 +1,4 @@
+### Dieses Programm dient zur Messung der Entwicklung der Reallaufzeit von A3.py
 import time
 from A3 import *
 import matplotlib.pyplot as plt
@@ -5,7 +6,7 @@ import random as r
 from sys import setrecursionlimit
 setrecursionlimit(1500)
 
-
+# Funktion zum Herausfinden von allen Tripel
 def bruteAllPossiblities():
     possibilites = set()
     umsätze = set()
@@ -43,22 +44,25 @@ def bruteAllPossiblities():
     plt.ylabel("$m'$")
     plt.show()
 
-
+# Zeit-Testungen
 def testTime():
-    m = 100
     times = []
     for i in range(1, 1000):
         hx = ""
-        s = time.time()
+        s = time()
         for _ in range(i):
             hx += list(hexInSSD.keys())[r.randint(0, len(hexInSSD.keys())-1)]
-        result = maximieren(hx, m)
-        print(hx, result[0], i)
-        e = time.time()
+        result = maximieren(hx, r.randint(int(i*0.5), int(i*1.5)))
+        if i%100 == 0:
+            #print(hx, result[0], i)
+            print(i)
+        e = time()
         times.append([i, e-s])
+    plt.xlabel("n (Anzahl an Ziffern)")
+    plt.ylabel("Reallaufzeit in s")
     plt.plot(list(zip(*times))[0], list(zip(*times))[1])
     plt.show()
 
 
 if __name__ == "__main__":
-    bruteAllPossiblities()
+    testTime()
