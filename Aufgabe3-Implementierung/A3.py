@@ -32,12 +32,24 @@ hexInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
-# Das Äquivalent für das Binärsystem
+# Das Äquivalent für das Dezimalsystem (Erweiterung)
+decInSSD = {
+    "9": [1, 1, 1, 1, 0, 1, 1],
+    "8": [1, 1, 1, 1, 1, 1, 1],
+    "7": [1, 1, 1, 0, 0, 0, 0],
+    "6": [1, 0, 1, 1, 1, 1, 1],
+    "5": [1, 0, 1, 1, 0, 1, 1],
+    "4": [0, 1, 1, 0, 0, 1, 1],
+    "3": [1, 1, 1, 1, 0, 0, 1],
+    "2": [1, 1, 0, 1, 1, 0, 1],
+    "1": [0, 1, 1, 0, 0, 0, 0],
+    "0": [1, 1, 1, 1, 1, 1, 0],
+}
+# Das Äquivalent für das Binärsystem (Erweiterung)
 binInSSD = {
     "1": [0, 1, 1, 0, 0, 0, 0],
     "0": [1, 1, 1, 1, 1, 1, 0],
 }
-
 # Funktion für rekursives Vorgehen zum Maximieren einer Hexadezimalzahl im SSD
 # maxUmlegungen: Umlegungen, die maximal getätigt werden dürfen
 # hexZahl: Hexadezimalzahl, die umwandelt werden soll
@@ -47,7 +59,7 @@ binInSSD = {
 #     Schritt: [IndexAlt, SegmentIndexAlt, IndexNeu, SegmentIndexNeu] (Standardmäßig leer)
 # tempOptionen: Liste an Optionen welche bereits ausprobiert wurden und gescheitert sind (für Optimierung) (Standardmäßig leer)
 # min: True, wenn die Zahl minimiert werden soll (Standardmäßig False)
-def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], tempOptionen=[], min = False):
+def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], tempOptionen=[], min = False, inSSD = hexInSSD):
     # Check ob alle Ziffern umwandelt wurden => man ist am Ende der Hexzahl angekommen
     if index >= len(hexZahl):
         # Check ob Segmente übrig sind => Die Lösung ist nicht valide
@@ -58,12 +70,12 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
         return schritte
     # Check ob zu viele Segmente übrig sind (die Segemente können keines Falls in den "hinteren" Ziffern untergebracht werden)
     # => Check ob der Umsatz größer ist, als es leere Segmente gibt
-    if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]):
+    if übrigerUmsatz > (7 * len(hexZahl[index:]))-sum([sum(inSSD[i]) for i in hexZahl[index:]]):
         # Die Anzahl der ''Lücken'' in der hinteren Ziffern ist größer als die Anzahl der übrigen Segmente
         return []
     # Check ob zu viele Segement im Voraus verwendet wurden (die Segmente können keines Falls von den "hinteren" Ziffern genommen werden)
     # => Check ob der Umsatz kleiner ist (negative Zahl), als es gefüllte Segmente gibt, wenn in jeder Ziffer am Ende noch mindestens zwei Segmente sein müssen (=1)
-    if übrigerUmsatz < (-sum([sum(hexInSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
+    if übrigerUmsatz < (-sum([sum(inSSD[i]) for i in hexZahl[index:]]) + 2*len(hexZahl[index:])):
         # Die Anzahl der ''Lücken'' in den bereits umegelegten Ziffern ist größer als die Anzahl der übrigen Segmente in den hinteren Ziffern
         return []
     # Kopie der ausgeschiedenen Optionen um Mutation zu vermeiden
@@ -71,7 +83,7 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
     # Festlegen der aktuellen Ziffer der Hexzahl
     ziffer = hexZahl[index]
     # Iteration über alle anderen Hexziffern von F bis 0
-    for i in (reversed(hexInSSD.keys()) if min else hexInSSD.keys()):
+    for i in (reversed(inSSD.keys()) if min else inSSD.keys()):
         # Überprüfen, ob die Option bereits bei einer anderen Ziffer ausgeschieden ist
         if (ziffer, i) in tempOptionenNeu:
             continue 
@@ -83,7 +95,7 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
         if i == ziffer and (len(schritte) == 0 or übrigerUmsatz == 0):
             # Die aktuelle Ziffer bleibt unverändert ... es wird mit der nächsten fortgefahren
             return maxZiffer(maxUmlegungen, hexZahl,
-                             index+1, übrigerUmsatz, schritte, tempOptionen=tempOptionenNeu)
+                             index+1, übrigerUmsatz, schritte, tempOptionen=tempOptionenNeu,inSSD=inSSD,min=min)
         # Die aktuell übrigen Segmente entsprechen dem Segmentumsatz
         übrigeSegmente = übrigerUmsatz
         # Kopie der Schritte um Mutation zu vermeiden
@@ -91,7 +103,7 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
         # Iteration über alle Segmente der Ziffern
         for segment in range(7):
             # Check ob das Segment von i in der Ausgangsziffer fehlt
-            if hexInSSD[i][segment] > hexInSSD[ziffer][segment]:
+            if inSSD[i][segment] > inSSD[ziffer][segment]:
                 # Check ob Segmente übrig sind
                 if übrigeSegmente > 0:
                     # Es gibt noch Segmente, die verwendet werden können
@@ -108,7 +120,7 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
                 # möglicherweise kann es in der nächsten Ziffer erzeugt werden)
                 übrigeSegmente -= 1
             # Check ob ein Segment von i in der Ausgangsziffer zu viel ist
-            elif hexInSSD[i][segment] < hexInSSD[ziffer][segment]:
+            elif inSSD[i][segment] < inSSD[ziffer][segment]:
                 # Check ob mehr Segmente verwendet wurden, als frei geworden sind
                 if übrigeSegmente < 0:
                     # Es gibt Umlegungen mit unbestimmter Herkunftsposition
@@ -133,7 +145,7 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
             # Es kann mit der nächsten Ziffer fortgefahren werden
             # Leere tempOptionen, wenn die Ziffer umgelegt wurde, weil dadurch möglicherweise neue Optionen möglich werden
             result = maxZiffer(maxUmlegungen, hexZahl,
-                               index+1, übrigeSegmente, schritte=schritteNeu, tempOptionen=([] if i != ziffer else tempOptionenNeu))
+                               index+1, übrigeSegmente, schritte=schritteNeu, tempOptionen=([] if i != ziffer else tempOptionenNeu), inSSD=inSSD, min=min)
 
             # Wenn eine Lösung gefunden wurde, wird diese zurückgegeben
             # Es ist die größtmögliche, da von F nach 0 iteriert wird
@@ -151,31 +163,36 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
 # maxUmlegungen: maximale Anzahl an Umlegungen
 # zwischenstandAnzeige: True, wenn die Zwischenstände angezeigt werden sollen
 # min: True, wenn die hexZahl minimiert statt maximiert werden soll
-def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False):
+def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False, inSSD=hexInSSD):
     # Ermitteln der nötigen Umlegungen zur Maximierung der Hexadezimalzahl mithilfe von "maxZiffer"
-    ergebnis = maxZiffer(maxUmlegungen, hexZahl, min=min)
+    ergebnis = maxZiffer(maxUmlegungen, hexZahl, min=min, inSSD=inSSD)
     # Maximale Hexadezimalzahl muss aus den Umlegungen "zurückgewonnen" werden
     ergebnisString = ""
     # Check ob überhaupt Umlegungen getätigt wurden
     if len(ergebnis) > 0:
         # Es wurden Umlegungen getätigt
         # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
-        ssd = [hexInSSD[i].copy() for i in hexZahl]
+        ssd = [inSSD[i].copy() for i in hexZahl]
+        # Ausgabe des Zwischenstandes in roher Form
+        print("\nZwischenstand (jede Subliste steht für eine Ziffer):\n\n" + str(ssd) + "\n")
         # Ausagbe der Starthexzahl wenn gewünscht
         if zwischenstandAnzeige:
             printSSD(ssd)
         # Iteraion über die ermittleten Umlegungen
-        for schritt in ergebnis:
+        for i,schritt in enumerate(ergebnis):
             # Durchführen der Umlegung
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
+            
+            # Ausgabe des Zwischenstandes in roher Form
+            print("\n" + str(i+1) + ": " + str(ssd) + "\n")
             # Ausgabe der SSA wenn gewünscht
             if zwischenstandAnzeige:
                 printSSD(ssd)
         # Iteration über alle Ziffern in der SSA
         for anzeige in ssd:
             # Hinzufügen der Ziffer im Stringformat (Umformung über die Dictionary s.o.)
-            ergebnisString += list(hexInSSD.keys())[list(hexInSSD.values()).index(anzeige)]
+            ergebnisString += list(inSSD.keys())[list(inSSD.values()).index(anzeige)]
     else:
         # Es wurden keine Umlegungen getätigt
         # Es ist bereits die maximale Hexadezimalzahl
@@ -261,8 +278,12 @@ def main():
     zwischenstandAnzeige = "-d" in argv
     # Lesen der Flagge -min für Minimierung statt Maximierung
     min = "-min" in argv
+    # Lesen der Flagge -bin für binäres Zahlensystem
+    binary = "-bin" in argv
+    # Lesen der Flagge -dec für dezimales Zahlensystem
+    decimal = "-dec" in argv
     # Maximieren der eingelesenen Hexadezimalzahl mit maximal m Umlegungen
-    lösung, umlegungen = maximieren(hexZahl, m, zwischenstandAnzeige, min)
+    lösung, umlegungen = maximieren(hexZahl, m, zwischenstandAnzeige, min=min, inSSD=(binInSSD if binary else (decInSSD if decimal else hexInSSD)))
     # Schreiben der Lösungsdatei
     with open("ergebnis_" + file, "w") as f:
         # Ausgabe der Lösungszahl
