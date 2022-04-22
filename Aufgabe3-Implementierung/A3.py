@@ -173,14 +173,19 @@ def maximieren(hexZahl, maxUmlegungen, zwischenstandAnzeige=False, min=False, in
         # Es wurden Umlegungen getätigt
         # Initialisierung der SSA (Liste von Datstellungen von Ziffern)
         ssd = [inSSD[i].copy() for i in hexZahl]
+        # Ausgabe des Zwischenstandes in roher Form
+        print("\nZwischenstand (jede Subliste steht für eine Ziffer):\n\n" + str(ssd) + "\n")
         # Ausagbe der Starthexzahl wenn gewünscht
         if zwischenstandAnzeige:
             printSSD(ssd)
         # Iteraion über die ermittleten Umlegungen
-        for schritt in ergebnis:
+        for i,schritt in enumerate(ergebnis):
             # Durchführen der Umlegung
             ssd[schritt[0]][schritt[1]] = 0
             ssd[schritt[2]][schritt[3]] = 1
+            
+            # Ausgabe des Zwischenstandes in roher Form
+            print("\n" + str(i+1) + ": " + str(ssd) + "\n")
             # Ausgabe der SSA wenn gewünscht
             if zwischenstandAnzeige:
                 printSSD(ssd)
