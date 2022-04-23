@@ -125,8 +125,12 @@ def maxZiffer(maxUmlegungen, hexZahl, index=0, übrigerUmsatz=0, schritte=[], te
                 if übrigeSegmente < 0:
                     # Es gibt Umlegungen mit unbestimmter Herkunftsposition
                     # Die Herkunftsposition wird auf die aktuelle Position (Ziffernindex, Segmentindex) gesetzt
-                    schritteNeu[len(schritteNeu)+übrigeSegmente][0] = index
-                    schritteNeu[len(schritteNeu)+übrigeSegmente][1] = segment
+                    # Das aktuelle Stäbchen wird für den letzten Schritt, ohne Herkunftsposition verwendet,
+                    # Damit die Darstellung von "ziffer" nicht komplett geleert wird (siehe Doc)
+                    neueUmlegung = schritteNeu.pop(len(schritteNeu)-1)
+                    neueUmlegung[0] = index
+                    neueUmlegung[1] = segment
+                    schritteNeu.insert(len(schritteNeu)+übrigerUmsatz,neueUmlegung)
                     # Es wird keine neue Umlegung gebraucht
                 else:
                     # Es gibt keine Umlegungen mit unbestimmter Herkunftsposition
