@@ -24,6 +24,7 @@ def bfAll(n, k, m, karten):
     finalKombinationen = []
     # Iteration über alle Karten
     for i in range(n):
+        # Ausgabe des Fortschritts
         print(i,n,len(kombinationen))
         # Iteration über alle bisherigen Kombinationen (+1 extra Iteration für eine vollständig neue Kombination)
         for j in range(len(kombinationen), -1, -1):
@@ -34,23 +35,31 @@ def bfAll(n, k, m, karten):
             else:
                 # Erweitern von Kombination j um die Karte i
                 neueKombination = [kombinationen[j][0] + [i], ("{0:b}".format(int(kombinationen[j][1], 2) ^ int(karten[i], 2))).zfill(m)] 
+            # Überprüfung ob die Kombination komplett ist
             if len(neueKombination[0]) == längeA or len(neueKombination[0]) == längeB:
                 finalKombinationen.append(neueKombination)
+            # Überprüfung ob die Kombination noch erweitert werden kann
             if len(neueKombination[0]) < längeA:
                 kombinationen.append(neueKombination)
 
-    # Sortieren der Listen nach dem Wert des XORS
+    # Sortieren der Listen nach dem Wert des XOR-Bitstrings
     finalKombinationen.sort(key=lambda x: int(x[1], 2))
 
-    # print(finalKombinationen)
-    # Suchen nach Duplikaten in den/der Liste/-n
+    # Suchen nach Duplikaten in der Liste
+    # Aktuell letzte Kombination
     letzteKombination = finalKombinationen[0]
+    # Iteration über alle restlichen Kombinationen
     for kombination in finalKombinationen[1:]:
+        # Überprüfung ob der Bitstring identisch ist und somit das XOR = 0 ist
+        # Überprüfung ob Längen den festgelegten Längen entsprechen (und nicht z.B. zweimal die kürzere benutzt wird)
         if kombination[1] == letzteKombination[1] and len(kombination[0])+len(letzteKombination[0]) == längeA+längeB:
+            # Überprüfung ob eine Karte in beiden Kombinationen vorkommt und somit die Vereinung die valide ist
             if len(list(set(kombination[0]) & set(letzteKombination[0]))) == 0:
+                # Zurückgeben der Vereinten Kombinationen
                 return [kombination[0]+letzteKombination[0]]
+        # Setzen der neuen letzten Kombination
         letzteKombination = kombination
-    print("Nothing Found")
+    # Zurückgeben einer leeren Liste (keine Lösung gefunden)
     return []
 
 # rekursive Funktion zum Anwenden von Brute Force auf das Restproblem (Kombination der Variablen nach dem Gauss-Algorithmus)
@@ -64,9 +73,8 @@ def bfVars(k, variablen, index, zweig, n):
     # Überprüfung ob der aktuelle Zweig einer Lösung entspricht (Anzahl an 1 = Anzahl an zu benutzenden Karten)
     if zweig[1].count("1") == k:
         return zweig[1]
-    # Abbrechen, wenn bereits mehr Variablen genutzt wurden, als es Karten gesucht sind
+    # Abbrechen, wenn bereits mehr Variablen genutzt wurden, als Karten gesucht sind
     elif zweig[0] > k:
-        # print("breaking",index,zweig)
         return None
     else:
         # Überprüfung, ob bereits keine Variablen mehr übrig sind
@@ -120,12 +128,10 @@ def gaussElim(n, k, m, karten):
                                                tMatrix[r1][c2]) % 2
                 # Dieser Prozess soll nur für die erste Eins in der Reihe durchgeführt werden
                 break
-    # Ausgabe der transponierten und eliminierten Matrix
-    # for r in tMatrix:
-    #   print(r)
-    # Dictionary
-    # (key: Index der Spalte bzw. Karte der Variable
-    #  value: Liste an Indizes der Karten, welche von der Variable beeinflusst werden)
+
+    # Dictionary für unabhängige Variablen
+    #   key: Index der Spalte bzw. Karte der Variable
+    #   value: Liste an Indizes der Karten, welche von der Variable beeinflusst werden
     variablen = {}
     # Iteration über alle Reihen der transponierten Matirx
     for i in range(len(tMatrix)):
@@ -164,17 +170,16 @@ def gaussElim(n, k, m, karten):
                 # Andernfalls muss ein "0" eingefügt werden
                 processedVariablen[-1] += "0"
     # Brute forcen der Variablen Kombination
-    print(len(processedVariablen))
-    lösungen = []
-
-    lösungen = [bfVars(k, processedVariablen, 0, [0,"0"], n)]
-    processedLösungen = []
-    for lösung in lösungen:
-        processedLösungen.append([])
-        for i in range(len(lösung)):
-            if lösung[i] == "1":
-                processedLösungen[-1].append(i)
-    return processedLösungen
+    lösung = bfVars(k, processedVariablen, 0, [0,"0"], n)
+    # Umwandeln des Bitstrings in die Indizes der Karten
+    processedLösung = []
+    # Iteration über die Zeichen des Bitstrings
+    for i in range(len(lösung)):
+        # Wenn es sich um eine 1 handelt, muss der Index gewählt werden
+        if lösung[i] == "1":
+            processedLösung.append(i)
+    # Zurückgeben der Indizes
+    return [processedLösung]
 
 # Funktion zum Lesen des Inputs
 def parseInput():
