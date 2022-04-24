@@ -171,6 +171,8 @@ def gaussElim(n, k, m, karten):
                 processedVariablen[-1] += "0"
     # Brute forcen der Variablen Kombination
     lösung = bfVars(k, processedVariablen, 0, [0,"0"], n)
+    if lösung is None:
+        return [[]]
     # Umwandeln des Bitstrings in die Indizes der Karten
     processedLösung = []
     # Iteration über die Zeichen des Bitstrings
