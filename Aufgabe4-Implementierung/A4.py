@@ -48,7 +48,6 @@ def bfAll(n, k, m, karten):
     for kombination in finalKombinationen[1:]:
         if kombination[1] == letzteKombination[1] and len(kombination[0])+len(letzteKombination[0]) == längeA+längeB:
             if len(list(set(kombination[0]) & set(letzteKombination[0]))) == 0:
-                print("FOUND SOLUTION:", letzteKombination, kombination)
                 return [kombination[0]+letzteKombination[0]]
         letzteKombination = kombination
     print("Nothing Found")
@@ -219,7 +218,7 @@ def main():
         return
     # Anwenden des Gauss-Algorithmus auf den gelsenen Input
     # => Übergeben von k+1, da die Gesamtzahl an XOR-Karten = Öffnungskarten + Sicherungskarten
-    lösungen = (bfAll(n, k+1, m, karten) if comb(n,k+1) < (0 if m > n else comb(n-m,k+1)) else gaussElim(n, k+1, m, karten))
+    lösungen = (bfAll(n, k+1, m, karten) if comb(n,ceil((k+1)/2)) < (0 if m > n else comb(n-m,k+1)) else gaussElim(n, k+1, m, karten))
     # Schreiben der Lösungsdatei
     with open("ergebnis_" + file, "w") as f:
         # Iteration über alle Lösungen
