@@ -5,207 +5,176 @@ from os.path import exists
 # Zur Übergabe von Argumenten im Terminal
 from sys import argv
 # Zum Berechnen von Fakultäten und Auf-/Abrundungen
-from math import factorial,ceil,floor
+from math import comb, ceil, floor
+from typing import final
 
 # Funktion zum Anwenden von Brute Force auf das Gesamtproblem (Kombination aller n Karten)
 # n: Gesamtzahl an Karten
-# k: Anzahl an Gesamtkarten! (Öffnungskarten + 1)
+# k: Anzahl an gesuchten Karten (inkl. Sicherungskarte)
 # m: Anzahl Bits pro Karte
 # karten: Liste aller Karten (Strings)
 def bfAll(n, k, m, karten):
-    länge = k//2
-    if k % 2 == 1:
-        längeA = ceil(k/2)
-        längeB = floor(k/2)
+    # Berechnen der beiden Längen
+    # => welche die Listen haben müssen, welche kombiniert werden
+    längeA = ceil(k/2)
+    längeB = floor(k/2)
     # Liste aller Kombinationen der Karten (Zwischenspeicherung)
     kombinationen = []
-    # Liste der Kombination mit Länge A
-    kombinationenA = []
-    # Liste der Kombinationen mit Länge B
-    kombinationenB = []
+    # Liste der Kombination mit Länge A oder B
+    finalKombinationen = []
     # Iteration über alle Karten
     for i in range(n):
+        print(i,n,len(kombinationen))
         # Iteration über alle bisherigen Kombinationen (+1 extra Iteration für eine vollständig neue Kombination)
         for j in range(len(kombinationen), -1, -1):
             # Überprüfung ob es sich um die erste Iteration handelt
             if j == len(kombinationen):
                 # Hinzufügen einer neuen Kombination für die Karte i
-                kombinationen.append([[i], karten[i]])
+                neueKombination = [[i], karten[i]]
             else:
                 # Erweitern von Kombination j um die Karte i
-                neueKombination = [kombinationen[j][0] + [i], "{0:b}".format(int(kombinationen[j][1], 2) ^ int(karten[i], 2)).zfill(m)]
-            # Überprüfung ob es zwei Listen mit verschiedenen Längen gibt
-            if k % 2 == 1:
-                # Hinzufügen der neuen Kombination in die zugehörige Liste
-                if len(neueKombination[0]) == längeA:
-                    kombinationenA.append(neueKombination)
-                elif len(neueKombination[0]) == längeB:
-                    kombinationenB.append(neueKombination)
-                elif len(neueKombination[0]) < längeB:
-                    # Die neue Kombination kann noch erweitert werden
-                    kombinationen.append(neueKombination)
-            else:
-                # Hinzufügen der neuen Kombination in die Liste A (Es gibt eine einheitliche Länge)
-                if len(neueKombination[0]) == länge:
-                    kombinationenA.append(neueKombination)
-                elif len(neueKombination[0]) < länge:
-                    # Die neue Kombination kann noch erweitert werden
-                    kombinationen.append(neueKombination)
-                
-    # Sortieren der Listen nach dem Wert des XORS
-    kombinationenA.sort(key= lambda x: int(x[1],2))
-    kombinationenB.sort(key= lambda x: int(x[1],2))
+                neueKombination = [kombinationen[j][0] + [i], ("{0:b}".format(int(kombinationen[j][1], 2) ^ int(karten[i], 2))).zfill(m)] 
+            if len(neueKombination[0]) == längeA or len(neueKombination[0]) == längeB:
+                finalKombinationen.append(neueKombination)
+            if len(neueKombination[0]) < längeA:
+                kombinationen.append(neueKombination)
 
+    # Sortieren der Listen nach dem Wert des XORS
+    finalKombinationen.sort(key=lambda x: int(x[1], 2))
+
+    # print(finalKombinationen)
     # Suchen nach Duplikaten in den/der Liste/-n
-    if k % 2 == 0:
-        letzteKombination = kombinationenA[0][1]
-        for kombination in kombinationenA[1:]:
-            if kombination[1] == letzteKombination:
+    letzteKombination = finalKombinationen[0]
+    for kombination in finalKombinationen[1:]:
+        if kombination[1] == letzteKombination[1] and len(kombination[0])+len(letzteKombination[0]) == längeA+längeB:
+            if len(list(set(kombination[0]) & set(letzteKombination[0]))) == 0:
                 print("FOUND SOLUTION:", letzteKombination, kombination)
-                break
-    else:
-        # TODO
-        pass
+                return [kombination[0]+letzteKombination[0]]
+        letzteKombination = kombination
+    print("Nothing Found")
+    return []
 
 # rekursive Funktion zum Anwenden von Brute Force auf das Restproblem (Kombination der Variablen nach dem Gauss-Algorithmus)
 # => nur bei unterdeterminierten Eingaben/Matrizen (wenn n>m)
-# k: Anzahl an Gesamtkarten! (Öffnungskarten + 1)
+# k: Anzahl an gesuchten Karten (inkl Öffnungskarte)
 # variablen: Liste der Bitstrings der Variablen (Auswirkung auf das Ergebnis des Gauss-Algorithmus)
 # index: Index der aktuellen Variable
-# zweig: Bitstring (XOR der in diesem Zweig benutzten Variablen) 
-def bfVars(k, variablen, index, zweig):
+# zweig: [Anzahl an benutzten Variablen, Bitstring (XOR der in diesem Zweig benutzten Variablen)]
+# n: Gesamtanzahl an Karten
+def bfVars(k, variablen, index, zweig, n):
     # Überprüfung ob der aktuelle Zweig einer Lösung entspricht (Anzahl an 1 = Anzahl an zu benutzenden Karten)
-    if zweig.count("1") == k:
-        return zweig
-    elif len(zweig[0]) > k:
+    if zweig[1].count("1") == k:
+        return zweig[1]
+    # Abbrechen, wenn bereits mehr Variablen genutzt wurden, als es Karten gesucht sind
+    elif zweig[0] > k:
         # print("breaking",index,zweig)
         return None
     else:
+        # Überprüfung, ob bereits keine Variablen mehr übrig sind
         if index > len(variablen)-1:
             return None
-        variable = list(variablen.keys())[index]
-        wert = variablen[variable]
-        neuerZweig = [zweig[0] + [variable],
-                      "{0:b}".format(int(zweig[1], 2) ^ int(wert, 2))]
-        result = bfVars(k, variablen, index+1, neuerZweig)
+        # Festlegen des Wertes (Bitstings) der aktuellen Variable
+        wert = variablen[index]
+        # Berechnen (XOR) für den neuen Zweig
+        neuerZweig = [zweig[0]+1,("{0:b}".format(int(zweig[1], 2) ^ int(wert, 2))).zfill(n)]
+        # Erweitern des neuen Zweiges
+        result = bfVars(k, variablen, index+1, neuerZweig, n)
+        # Bei Fehlschlagen mit Wahl der Variable, wird ohne die Variable fortgefahren
         if result is None:
-            return bfVars(k, variablen, index+1, zweig)
+            return bfVars(k, variablen, index+1, zweig, n)
         else:
+            # Andernfalls wird das Ergebnis zurückgegeben
             return result
 
-
+# Funktion für das Gausssche Eliminationsverfahren und Brute-Force der Variabalen-Kombinationen
+# n: Anzahl an Gesamtkarten (int)
+# m: Anzahl an Bits pro Karte (int)
+# k: Anzahl an gesuchten Karten (inkl. Sicherungskarte)
+# karten: Liste an Karten (Strings)
 def gaussElim(n, k, m, karten):
-    # Transponieren der Matrix
+    # Anlegen einer Matrix (transponierte Matrix => m und n sind vertauscht) 
     tMatrix = [[0 for _ in range(n+1)] for _ in range(m)]
+    # Füllen der transponierten Matrix (Iteration über alle Reihen der ursprünglichen Matrix)
     for i in range(n):
+        # Iteration über alle Spalten der ursprünglichen Matrix
         for j in range(m):
+            # Einsetzen des Wertes in die transponierte Matrix
             tMatrix[j][i] = int(karten[i][j])
+    # Hinzufügen einer Zeile für die Parität von k
     # tMatrix.append([1 for _ in range(n)]+[k % 2])
-    # Eliminierungsverfahren
+    # Eliminationsverfahren
+    # Iteration über alle Reihen der transponierten Matrix (O(m))
     for r1 in range(len(tMatrix)):
+        # Iteration über alle Spalten der transponierten Matrix (O(n))
         for c1 in range(len(tMatrix[r1])):
+            # Überprüfung, ob es sich um die erste Eins in dieser Reihe handelt
             if tMatrix[r1][c1] == 1:
+                # r1 muss auf alle anderen Reihen xored werden
+                # => Iteration über alle anderen Reihen (O(m))
                 for r2 in range(len(tMatrix)):
+                    # Nur wenn eine 1 vorhanden ist und es sich nicht um die selbe Reihe handelt
                     if r1 != r2 and tMatrix[r2][c1] == 1:
+                        # Die XOR-Operation muss auf jede Spalte angewendet werden O(m)
                         for c2 in range((len(tMatrix[r2]))):
+                            # Anwenden der XOR Operation bzw. Addition in Z2
                             tMatrix[r2][c2] = (tMatrix[r2][c2] +
                                                tMatrix[r1][c2]) % 2
+                # Dieser Prozess soll nur für die erste Eins in der Reihe durchgeführt werden
                 break
+    # Ausgabe der transponierten und eliminierten Matrix
     # for r in tMatrix:
-     #   print(r)
-    # print(sum([sum(i)-1 if sum(i)-1 > 0 else 0 for i in transponierteMatrix]))
-    lösungen = []
-    # Herausfinden von Variablen
+    #   print(r)
+    # Dictionary
+    # (key: Index der Spalte bzw. Karte der Variable
+    #  value: Liste an Indizes der Karten, welche von der Variable beeinflusst werden)
     variablen = {}
+    # Iteration über alle Reihen der transponierten Matirx
     for i in range(len(tMatrix)):
+        # Setzen des Indexes auf die Spalte, in welcher die erste 1 der Reihe vorkommt
         index = None
+        # Iteration über alle (bis auf die letzte => ist überall 0) Spalte
         for j in range(len(tMatrix[i])-1):
             if tMatrix[i][j] == 1:
+                # Überprüfung, ob es sich um die erste Eins handelt
                 if index is None:
+                    # Setzen des Indexes für die erste Eins
                     index = j
                 else:
+                    # Es handelt sich nicht um die erste Eins
+                    # => Es ist eine unabhängige Variable
+                    # Überprüfung ob diese Variable bereits aufgenommen wurde
                     if j not in variablen.keys():
+                        # Hinzufügen einer neuen Variable
                         variablen[j] = [index]
                     else:
+                        # Hinzufügen des Indexes in die beeinflussten Variablen
                         variablen[j].append(index)
 
-    processedVariablen = {}
-    anzahl1 = []
+    # Liste von Bitstrings der Länge n für jede Variable
+    # => 1, wenn die Karte i von der Variable beeinflusst wird
+    processedVariablen = []
+    # Iteration über alle Variablen
     for variable in variablen.keys():
-        processedVariablen[variable] = ""
-        anzahlVar = 0
-        for i in range(n-len(variablen)):
-            if i in variablen[variable]:
-                processedVariablen[variable] += "1"
-                anzahlVar += 1
+        processedVariablen.append("")
+        # Iteration über alle Karten
+        for i in range(n):
+            # Hinzufügen einer "1", wenn die Karte von der Variable beeinflusst wird
+            if i in variablen[variable] or i == variable:
+                processedVariablen[-1] += "1"
             else:
-                processedVariablen[variable] += "0"
-        anzahl1.append([variable, anzahlVar])
-    anzahl1.sort(key=lambda x: x[1], reverse=True)
-    for r in processedVariablen.keys():
-        print(r, processedVariablen[r])
-
+                # Andernfalls muss ein "0" eingefügt werden
+                processedVariablen[-1] += "0"
+    # Brute forcen der Variablen Kombination
     print(len(processedVariablen))
+    lösungen = []
 
-    kombinationen = []
-    overallIterations = 0
-    lösung = bfVars(k, processedVariablen, 0, [[], "0"])
-    print(lösung)
-    '''for i in range(len(processedVariablen)):
-        variable = list(processedVariablen.keys())[i]
-        for j in range(len(kombinationen), -1, -1):
-            overallIterations += 1
-            if j == len(kombinationen):
-                neueKombination = [[variable], processedVariablen[variable]]
-            else:
-                neueKombination = [kombinationen[j][0] + [variable],
-                                   "{0:b}".format(int(processedVariablen[variable], 2) ^ int(kombinationen[j][1], 2))]
-
-            if neueKombination[1].count("1")+len(neueKombination[0]) == k+1:
-                print("FOUND")
-                print(neueKombination)
-                lösungen.append(neueKombination)
-            möglich = len(neueKombination[0]) < k+1  # math.ceil((k+1)/2)+1
-            if möglich:
-                übrigeVariablen = k+1 - len(neueKombination[0])
-                maximalAnzahl1 = 0
-                benutzt = 0
-                for p in range(len(anzahl1)):
-                    if anzahl1[p][0] not in neueKombination[0]:
-                        maximalAnzahl1 += anzahl1[p][1]
-                        benutzt += 1
-                        if benutzt == übrigeVariablen:
-                            break
-                if neueKombination[1].count("1")+len(neueKombination[0]) - (maximalAnzahl1+benutzt) > k+1:
-                    möglich = False
-
-            if möglich:
-                kombinationen.append(neueKombination)
-        print(i, len(kombinationen), overallIterations)'''
-
-    # Fusionieren der Lösungskombinationen
-    '''for i in range(len(kombinationen)):
-        if i % 1000 == 0:
-            print(i)
-        for j in range(i+1, len(kombinationen)):
-            for element in kombinationen[i][0]:
-                if element in kombinationen[j][0]:
-                    break
-            else:
-
-                neueKombination = [kombinationen[j][0] + kombinationen[i][0],
-                                   "{0:b}".format(int(kombinationen[i][1], 2) ^ int(kombinationen[j][1], 2))]
-                if neueKombination[1].count("1")+len(neueKombination[0]) == k+1:
-                    lösungen.append(neueKombination)'''
-
+    lösungen = [bfVars(k, processedVariablen, 0, [0,"0"], n)]
     processedLösungen = []
-    # for lösung in lösungen:
-    lösung[1] = lösung[1].zfill(n-len(processedVariablen))
-    processedLösungen.append(lösung[0])
-    for i in range(len(lösung[1])):
-        if lösung[1][i] == "1":
-            processedLösungen[-1].append(i)
-    print(processedLösungen)
+    for lösung in lösungen:
+        processedLösungen.append([])
+        for i in range(len(lösung)):
+            if lösung[i] == "1":
+                processedLösungen[-1].append(i)
     return processedLösungen
 
 # Funktion zum Lesen des Inputs
@@ -223,7 +192,7 @@ def parseInput():
         print("\033[1;31mDatei nicht gefunden\033[0m")
         return None
     # Öffnen der Eingabedatei (im Lesemodus)
-    with open(file=file, mode="r") as data: 
+    with open(file=file, mode="r") as data:
         # Lesen aller Zeilen der Eingabedatei
         inhalt = data.readlines()
         # Bereinigen der Zeilen (Zeilenumbrüche entfernen)
@@ -250,7 +219,7 @@ def main():
         return
     # Anwenden des Gauss-Algorithmus auf den gelsenen Input
     # => Übergeben von k+1, da die Gesamtzahl an XOR-Karten = Öffnungskarten + Sicherungskarten
-    lösungen = gaussElim(n, k+1, m, karten)
+    lösungen = (bfAll(n, k+1, m, karten) if comb(n,k+1) < (0 if m > n else comb(n-m,k+1)) else gaussElim(n, k+1, m, karten))
     # Schreiben der Lösungsdatei
     with open("ergebnis_" + file, "w") as f:
         # Iteration über alle Lösungen
@@ -258,12 +227,13 @@ def main():
             # Itearation über alle Kartenindizes der Lösung
             for index in lösung:
                 # Ausgabe der Lösung
-                print(input[3][index])
+                print(karten[index])
                 # Schreiben der Kartenwerte in die Datei
-                f.write(input[3][index] + "\n")
+                f.write(karten[index] + "\n")
             # Trennung der Lösungen über ein \n
             f.write("\n")
             print()
+
 
 # Startpunkt des Programms
 if __name__ == "__main__":
