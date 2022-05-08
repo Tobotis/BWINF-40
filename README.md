@@ -1,5 +1,5 @@
 # BWINF-40
-2. Runde des 40. Bundeswettbewerb für Informatik (2022)
+Bearbeitung der 2. Runde des 40. Bundeswettbewerb für Informatik (2022)
 ## Bearbeitung: Aufgabe 3:
 Severin hat heute in der Schule das Hexadezimalsystem kennengelernt. Er verwendet nun kurze
 Stäbchen, um die sechzehn Ziffern darzustellen, wie in einer Siebensegmentanzeige. Für die
